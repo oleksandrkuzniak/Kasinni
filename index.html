@@ -290,7 +290,7 @@
     <div class="card config-group">
         <label for="aiProvider">⚡ Обрана нейромережа:</label>
         <select id="aiProvider" onchange="onProviderChange()">
-            <option value="gemini">Google Gemini (gemini-2.5-flash)</option>
+            <option value="gemini">Google Gemini (gemini-3.6-flash)</option>
             <option value="openai">OpenAI ChatGPT (GPT-4o-mini)</option>
             <option value="claude">Anthropic Claude (Claude 3.5 Haiku)</option>
             <option value="openrouter">OpenRouter (Універсальний API)</option>
@@ -460,8 +460,6 @@
 
         async function sendQuery() {
             const provider = document.getElementById("aiProvider").value;
-            
-            // Виправлено: Спочатку беремо значення з текстового поля, якщо воно є, і авто-зберігаємо його
             let apiKey = document.getElementById("apiKey").value.trim() || localStorage.getItem(`${provider}_key`);
 
             if (!apiKey) {
@@ -518,7 +516,7 @@
             sendBtn.disabled = false;
         }
 
-        // --- Google Gemini API ---
+        // --- Google Gemini API (gemini-3.6-flash) ---
         async function callGeminiAPI(apiKey, text, imgBase64) {
             const contents = chatHistory.map(m => ({
                 role: m.role === 'user' ? 'user' : 'model',
@@ -531,8 +529,7 @@
                 });
             }
 
-            // Виправлено: прибрано google_search, який блокувався на Free Tier
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -627,7 +624,7 @@
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: "google/gemini-2.5-flash",
+                    model: "google/gemini-3.6-flash",
                     messages: messages
                 })
             });
