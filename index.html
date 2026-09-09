@@ -291,7 +291,7 @@
     <div class="card config-group">
         <label for="aiProvider">⚡ Обрана нейромережа:</label>
         <select id="aiProvider" onchange="onProviderChange()">
-            <option value="gemini">Google Gemini (gemini-2.5-flash)</option>
+            <option value="gemini">Google Gemini (gemini-3.6-flash)</option>
             <option value="openai">OpenAI ChatGPT (GPT-4o-mini)</option>
             <option value="claude">Anthropic Claude (Claude 3.5 Haiku)</option>
             <option value="openrouter">OpenRouter (Універсальний API)</option>
@@ -524,7 +524,7 @@
             sendBtn.disabled = false;
         }
 
-        // --- Google Gemini API ---
+        // --- Google Gemini API (Версія 3.6 Flash) ---
         async function callGeminiAPI(apiKey, text, imgBase64) {
             const contents = chatHistory.map(m => ({
                 role: m.role === 'user' ? 'user' : 'model',
@@ -537,7 +537,7 @@
                 });
             }
 
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -633,7 +633,7 @@
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: "google/gemini-2.5-flash",
+                    model: "google/gemini-3.6-flash",
                     messages: messages
                 })
             });
