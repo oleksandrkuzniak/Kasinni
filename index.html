@@ -18,7 +18,7 @@
             padding: 12px;
             max-width: 650px;
             margin: 0 auto;
-            padding-bottom: 210px;
+            padding-bottom: 210px; /* Запас місця для зафіксованої панелі внизу */
         }
 
         .header {
@@ -132,6 +132,12 @@
             width: 100%;
         }
 
+        .chat-bubble img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
         /* Фіксована панель вводу внизу */
         .bottom-control-panel {
             position: fixed;
@@ -150,6 +156,7 @@
             z-index: 1000;
         }
 
+        /* Компактний стан при скролі вниз */
         .bottom-control-panel.minimized {
             transform: translateX(-50%) translateY(35px);
             opacity: 0.85;
@@ -294,12 +301,14 @@
         </div>
     </div>
 
+    <!-- Область повідомлень чату -->
     <div id="chatContainer"></div>
 
     <div id="loading" class="loading-status">
-        🌐 Проводжу актуальний пошук в інтернеті... Зачекайте.
+        ⏳ Пошук інформації та обробка запиту... Зачекайте.
     </div>
 
+    <!-- Зафіксована нижня панель вводу -->
     <div class="bottom-control-panel" id="bottomPanel">
         <div class="search-box-wrapper">
             <div id="previewContainer" style="display: none;">
@@ -328,16 +337,19 @@
         let chatHistory = [];
         let lastScrollTop = 0;
 
-        const SYSTEM_PROMPT = `Ти — винятково професійний продавець-консультант побутової техніки та електроніки.
+        const SYSTEM_PROMPT = `Ти — винятково професійний продавець-консультант побутової техніки та електроніки. 
+Твоя база знань ТА ОБОВ'ЯЗКОВИЙ ПОШУК мають бути максимально актуальними на поточний момент.
 
-КРИТИЧНО ВАЖЛИВА ІНСТРУКЦІЯ ПЕРЕВІРКИ СТАТУСУ ТОВАРУ:
-1. ПЕРЕД ТИМ як робити будь-які висновки чи стверджувати, що модель "планується", "ще не вийшла" або "не існує", ТИ ЗОБОВ'ЯЗАНИЙ ПРОАНАЛІЗУВАТИ ЗНАЙДЕНІ ДАНІ В ГУГЛ-ПОШУКУ.
-2. Перевір наявність товару в українських магазинах (Comfy, Rozetka, Foxtrot, ALLO, Hotline, E-Katalog). Якщо товар продається або про нього є реальні сторінки в магазинах України — він ОФІЦІЙНО ВИЙШОВ. Жодних заяв про те, що це лише чутки чи запланована модель!
-3. Якщо користувач задає додаткові або уточнюючі питання (наприклад: "які є версії пам'яті?", "порівняй ціни"), надавай пряму відповідь на це питання у контексті попередньої моделі без повторення всього шаблону.
+ОБОВ'ЯЗКОВА ІНСТРУКЦІЯ ПОШУКУ (ОБОВ'ЯЗКОВО ДЛЯ КОЖНОГО ЗАПИТУ):
+1. ПЕРЕД ТИМ як сказати, що модель не існує, незанонсована чи відсутня — ЗРОБИ ГЛИБОКИЙ ПОШУК В ІНТЕРНЕТІ.
+2. Якщо інформації немає на офіційному сайті виробника, ОБОВ'ЯЗКОВО шукай на товарних агрегаторах та в українських ритейлерах (Rozetka, Comfy, Foxtrot, ALLO, Hotline, E-Katalog).
+3. Якщо інформації про ціну в конкретному магазині немає навіть після пошуку — пиши "Невідомо".
+4. Пам'ятай контекст попередньої розмови! Якщо користувач ставить уточнююче запитання (наприклад: "які є версії пам'яті?", "а які кольори?", "порівняй з конкуретом"), відповідай безпосередньо в контексті товару, про який йшла мова вище.
 
-ОБОВ'ЯЗКОВІ ПРАВИЛА ВІДПОВІДІ:
-1. НІКОЛИ не вигадуй характеристики чи ціни. Жодних вступних слів чи привітань ("Вітаю", "Я консультант" тощо). Одразу по суті.
-2. Шаблон первинного аналізу товару:
+ОБОВ'ЯЗКОВІ ПРАВИЛА:
+1. НІКОЛИ не вигадуй характеристики чи ціни. Жодних вступних слів або привітань ("Вітаю", "Я консультант" тощо). Одразу по суті.
+2. Якщо в чаті задається ДОДАТКОВЕ або УТОЧНЮЮЧЕ запитання: дай на нього пряму, коротку та вичерпну відповідь без повторного виведення всього великого шаблону.
+3. Формат первинного аналізу товару (коли модель запитують уперше або дають нове фото):
 
 📌 Товар: [Точна назва та модель]
 🏷 Ціна на ціннику / середня ціна: [Ціна] грн
@@ -385,6 +397,7 @@
             }
         });
 
+        // Логіка згортання панелі при скролі
         window.addEventListener("scroll", () => {
             const st = window.pageYOffset || document.documentElement.scrollTop;
             const panel = document.getElementById("bottomPanel");
@@ -460,13 +473,20 @@
                 const bubble = document.createElement("div");
                 bubble.className = `chat-bubble ${msg.role === 'user' ? 'user' : 'assistant'}`;
 
-                let textContent = "";
-                if (Array.isArray(msg.parts)) {
+                if (msg.role === 'user') {
+                    let textContent = "";
                     msg.parts.forEach(p => {
                         if (p.text) textContent += p.text;
                     });
+                    bubble.textContent = textContent;
+                } else {
+                    let textContent = "";
+                    msg.parts.forEach(p => {
+                        if (p.text) textContent += p.text;
+                    });
+                    bubble.textContent = textContent;
                 }
-                bubble.textContent = textContent;
+
                 container.appendChild(bubble);
             });
 
@@ -484,7 +504,7 @@
             }
 
             if (!textQuery && !selectedBase64Image) {
-                alert("Будь ласка, введіть запит або додайте фотографію!");
+                alert("Будь ласка, введіть запит або додайте фотографія!");
                 return;
             }
 
@@ -494,6 +514,7 @@
             loadingEl.style.display = "block";
             sendBtn.disabled = true;
 
+            // Формування структури поточного повідомлення користувача
             const userParts = [];
             if (textQuery) {
                 userParts.push({ text: textQuery });
@@ -510,6 +531,7 @@
                 });
             }
 
+            // Додаємо повідомлення користувача в історію
             chatHistory.push({
                 role: "user",
                 parts: userParts
@@ -517,13 +539,17 @@
 
             renderChat();
 
+            // Очищуємо поле вводу та фото
             document.getElementById("promptInput").value = "";
             removeImage();
 
-            const apiContents = chatHistory.map(item => ({
-                role: item.role,
-                parts: item.parts
-            }));
+            // Формуємо контекст для відправки в API (конвертуємо фото для економії, залишаючи в історії)
+            const apiContents = chatHistory.map(item => {
+                return {
+                    role: item.role,
+                    parts: item.parts
+                };
+            });
 
             let success = false;
             let lastErrorMsg = "";
@@ -539,23 +565,15 @@
                             system_instruction: {
                                 parts: [{ text: SYSTEM_PROMPT }]
                             },
-                            contents: apiContents,
-                            tools: [
-                                {
-                                    google_search: {}
-                                }
-                            ]
+                            contents: apiContents
                         })
                     });
 
                     const data = await response.json();
 
-                    if (response.ok && data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
-                        let replyText = "";
-                        data.candidates[0].content.parts.forEach(part => {
-                            if (part.text) replyText += part.text;
-                        });
-
+                    if (response.ok && data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
+                        const replyText = data.candidates[0].content.parts[0].text;
+                        
                         chatHistory.push({
                             role: "model",
                             parts: [{ text: replyText }]
@@ -577,7 +595,7 @@
             if (!success) {
                 chatHistory.push({
                     role: "model",
-                    parts: [{ text: "❌ Помилка API: " + (lastErrorMsg || "Не вдалося отримати відповідь. Перевірте ключ API.") }]
+                    parts: [{ text: "❌ Помилка API: " + (lastErrorMsg || "Не вдалося отримати відповідь від моделей Gemini.") }]
                 });
                 renderChat();
             }
