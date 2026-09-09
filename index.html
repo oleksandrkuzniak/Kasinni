@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Асистент Продавця & Сканер</title>
+    <title>Асистент Продавця & Сканер (Gemini 3.6 Flash)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -30,7 +30,7 @@
         }
 
         .header h1 {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: #111;
         }
 
@@ -56,7 +56,7 @@
         .config-group {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
         label {
@@ -65,7 +65,7 @@
             color: #374151;
         }
 
-        select, input[type="text"] {
+        input[type="text"] {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -75,7 +75,7 @@
             outline: none;
         }
 
-        select:focus, input[type="text"]:focus {
+        input[type="text"]:focus {
             border-color: #0066cc;
         }
 
@@ -97,7 +97,7 @@
 
         .status-tag {
             font-size: 0.75rem;
-            margin-top: 4px;
+            margin-top: 2px;
             font-weight: 600;
         }
 
@@ -283,22 +283,15 @@
 <body>
 
     <div class="header">
-        <h1>🔍 Асистент & Сканер</h1>
+        <h1>🔍 Асистент & Сканер (Gemini 3.6 Flash)</h1>
         <button class="btn-clear-chat" onclick="clearChatHistory()">🧹 Очистити чат</button>
     </div>
 
     <div class="card config-group">
-        <label for="aiProvider">⚡ Обрана нейромережа:</label>
-        <select id="aiProvider" onchange="onProviderChange()">
-            <option value="gemini">Google Gemini (gemini-3.6-flash)</option>
-            <option value="openai">OpenAI ChatGPT (GPT-4o-mini)</option>
-            <option value="claude">Anthropic Claude (Claude 3.5 Haiku)</option>
-            <option value="openrouter">OpenRouter (Універсальний API)</option>
-        </select>
-
+        <label for="apiKey">🔑 API Ключ Google Gemini:</label>
         <div class="input-row">
-            <input type="text" id="apiKey" placeholder="Введіть API Key...">
-            <button type="button" class="btn-save-key" onclick="saveCurrentKey()">💾 Зберегти</button>
+            <input type="text" id="apiKey" placeholder="Введіть ваш Gemini API Key...">
+            <button type="button" class="btn-save-key" onclick="saveKey()">💾 Зберегти</button>
         </div>
         <div id="keyStatusText" class="status-tag inactive">🔴 Ключ не збережено</div>
     </div>
@@ -318,7 +311,7 @@
                 </div>
             </div>
 
-            <textarea id="promptInput" placeholder="Введіть запит або додайте фото цінника..."></textarea>
+            <textarea id="promptInput" placeholder="Введіть запит або додайте фото ценника..."></textarea>
 
             <div class="action-bar">
                 <div class="btn-attach" title="Прикріпити фото">
@@ -359,11 +352,9 @@
 [Професійна оцінка покупцю]`;
 
         document.addEventListener("DOMContentLoaded", () => {
-            const savedProvider = localStorage.getItem("active_provider") || "gemini";
-            document.getElementById("aiProvider").value = savedProvider;
-            loadKeyForProvider(savedProvider);
+            loadKey();
 
-            const savedChat = localStorage.getItem("multi_chat_history");
+            const savedChat = localStorage.getItem("gemini_chat_history");
             if (savedChat) {
                 try {
                     chatHistory = JSON.parse(savedChat);
@@ -383,38 +374,32 @@
             lastScrollTop = st <= 0 ? 0 : st;
         });
 
-        function onProviderChange() {
-            const provider = document.getElementById("aiProvider").value;
-            localStorage.setItem("active_provider", provider);
-            loadKeyForProvider(provider);
-        }
-
-        function loadKeyForProvider(provider) {
-            const savedKey = localStorage.getItem(`${provider}_key`) || "";
+        function loadKey() {
+            const savedKey = localStorage.getItem("gemini_api_key") || "";
             document.getElementById("apiKey").value = savedKey;
-            
-            const statusEl = document.getElementById("keyStatusText");
-            if (savedKey.trim().length > 0) {
-                statusEl.className = "status-tag active";
-                statusEl.textContent = `🟢 Ключ для ${provider.toUpperCase()} активний`;
-            } else {
-                statusEl.className = "status-tag inactive";
-                statusEl.textContent = `🔴 Введіть ключ для ${provider.toUpperCase()}`;
-            }
+            updateKeyStatus(savedKey);
         }
 
-        function saveCurrentKey() {
-            const provider = document.getElementById("aiProvider").value;
+        function saveKey() {
             const key = document.getElementById("apiKey").value.trim();
-
             if (!key) {
                 alert("Введіть API Key!");
                 return;
             }
+            localStorage.setItem("gemini_api_key", key);
+            updateKeyStatus(key);
+            alert("API Ключ успішно збережено!");
+        }
 
-            localStorage.setItem(`${provider}_key`, key);
-            loadKeyForProvider(provider);
-            alert(`Ключ для ${provider.toUpperCase()} збережено!`);
+        function updateKeyStatus(key) {
+            const statusEl = document.getElementById("keyStatusText");
+            if (key.trim().length > 0) {
+                statusEl.className = "status-tag active";
+                statusEl.textContent = "🟢 Ключ GEMINI активний";
+            } else {
+                statusEl.className = "status-tag inactive";
+                statusEl.textContent = "🔴 Введіть API Key";
+            }
         }
 
         function handleImageSelect(event) {
@@ -439,7 +424,7 @@
         function clearChatHistory() {
             if (confirm("Очистити історію чату?")) {
                 chatHistory = [];
-                localStorage.removeItem("multi_chat_history");
+                localStorage.removeItem("gemini_chat_history");
                 renderChat();
             }
         }
@@ -459,16 +444,15 @@
         }
 
         async function sendQuery() {
-            const provider = document.getElementById("aiProvider").value;
-            let apiKey = document.getElementById("apiKey").value.trim() || localStorage.getItem(`${provider}_key`);
+            let apiKey = document.getElementById("apiKey").value.trim() || localStorage.getItem("gemini_api_key");
 
             if (!apiKey) {
-                alert(`Будь ласка, введіть та збережіть API Key для ${provider.toUpperCase()}!`);
+                alert("Будь ласка, введіть та збережіть Gemini API Key!");
                 return;
             }
 
-            localStorage.setItem(`${provider}_key`, apiKey);
-            loadKeyForProvider(provider);
+            localStorage.setItem("gemini_api_key", apiKey);
+            updateKeyStatus(apiKey);
 
             const textQuery = document.getElementById("promptInput").value.trim();
             if (!textQuery && !selectedBase64Image) {
@@ -491,22 +475,10 @@
             removeImage();
 
             try {
-                let responseText = "";
-
-                if (provider === "gemini") {
-                    responseText = await callGeminiAPI(apiKey, userText, currentImg);
-                } else if (provider === "openai") {
-                    responseText = await callOpenAIAPI(apiKey, userText, currentImg);
-                } else if (provider === "claude") {
-                    responseText = await callClaudeAPI(apiKey, userText, currentImg);
-                } else if (provider === "openrouter") {
-                    responseText = await callOpenRouterAPI(apiKey, userText, currentImg);
-                }
-
+                const responseText = await callGeminiAPI(apiKey, userText, currentImg);
                 chatHistory.push({ role: "assistant", text: responseText });
-                localStorage.setItem("multi_chat_history", JSON.stringify(chatHistory));
+                localStorage.setItem("gemini_chat_history", JSON.stringify(chatHistory));
                 renderChat();
-
             } catch (err) {
                 chatHistory.push({ role: "assistant", text: "❌ Помилка API: " + err.message });
                 renderChat();
@@ -516,8 +488,8 @@
             sendBtn.disabled = false;
         }
 
-        // --- Google Gemini API (gemini-3.6-flash) ---
-        async function callGeminiAPI(apiKey, text, imgBase64) {
+        // --- Google Gemini API (gemini-3.6-flash з повтором при навантаженні) ---
+        async function callGeminiAPI(apiKey, text, imgBase64, retries = 2) {
             const contents = chatHistory.map(m => ({
                 role: m.role === 'user' ? 'user' : 'model',
                 parts: [{ text: m.text }]
@@ -529,109 +501,38 @@
                 });
             }
 
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-                    contents: contents
-                })
-            });
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error?.message || "Gemini API Error");
-            return data.candidates[0].content.parts.map(p => p.text).join("");
-        }
+            for (let attempt = 0; attempt <= retries; attempt++) {
+                try {
+                    const res = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+                            contents: contents
+                        })
+                    });
 
-        // --- OpenAI (ChatGPT) API ---
-        async function callOpenAIAPI(apiKey, text, imgBase64) {
-            const messages = [{ role: "system", content: SYSTEM_PROMPT }];
-            
-            chatHistory.forEach(m => {
-                messages.push({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text });
-            });
+                    const data = await res.json();
 
-            if (imgBase64) {
-                messages[messages.length - 1].content = [
-                    { type: "text", text: text },
-                    { type: "image_url", image_url: { url: `data:image/jpeg;base64,${imgBase64}` } }
-                ];
+                    if (!res.ok) {
+                        const errMsg = data.error?.message || "Помилка сервера Gemini";
+                        
+                        // Якщо сервер завантажений (High Demand / 503 / 429), робимо повтор через 2 секунди
+                        if ((res.status === 503 || res.status === 429 || errMsg.includes("demand") || errMsg.includes("overloaded")) && attempt < retries) {
+                            await new Promise(r => setTimeout(r, 2000));
+                            continue;
+                        }
+                        throw new Error(errMsg);
+                    }
+
+                    return data.candidates[0].content.parts.map(p => p.text).join("");
+                } catch (err) {
+                    if (attempt === retries) throw err;
+                    await new Promise(r => setTimeout(r, 2000));
+                }
             }
-
-            const res = await fetch("https://api.openai.com/v1/chat/completions", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "gpt-4o-mini",
-                    messages: messages
-                })
-            });
-
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error?.message || "OpenAI API Error");
-            return data.choices[0].message.content;
-        }
-
-        // --- Anthropic Claude API ---
-        async function callClaudeAPI(apiKey, text, imgBase64) {
-            const messages = chatHistory.map(m => ({
-                role: m.role === 'user' ? 'user' : 'assistant',
-                content: m.text
-            }));
-
-            if (imgBase64) {
-                messages[messages.length - 1].content = [
-                    { type: "text", text: text },
-                    { type: "image", source: { type: "base64", media_type: "image/jpeg", data: imgBase64 } }
-                ];
-            }
-
-            const res = await fetch("https://api.anthropic.com/v1/messages", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': apiKey,
-                    'anthropic-version': '2023-06-01',
-                    'dangerously-allow-browser': 'true'
-                },
-                body: JSON.stringify({
-                    model: "claude-3-5-haiku-20241022",
-                    system: SYSTEM_PROMPT,
-                    max_tokens: 1000,
-                    messages: messages
-                })
-            });
-
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error?.message || "Claude API Error");
-            return data.content[0].text;
-        }
-
-        // --- OpenRouter API ---
-        async function callOpenRouterAPI(apiKey, text, imgBase64) {
-            const messages = [{ role: "system", content: SYSTEM_PROMPT }];
-            chatHistory.forEach(m => {
-                messages.push({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text });
-            });
-
-            const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "google/gemini-3.6-flash",
-                    messages: messages
-                })
-            });
-
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error?.message || "OpenRouter Error");
-            return data.choices[0].message.content;
         }
     </script>
 </body>
