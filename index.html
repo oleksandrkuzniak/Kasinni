@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Консультант & Сканер Цінників</title>
+    <title>Асистент Продавця & Сканер</title>
     <style>
         * {
             box-sizing: border-box;
@@ -16,19 +16,37 @@
             background-color: #f4f6f8;
             color: #1a1a1a;
             padding: 12px;
-            max-width: 600px;
+            max-width: 650px;
             margin: 0 auto;
-            padding-bottom: 30px;
+            padding-bottom: 210px; /* Запас місця для зафіксованої панелі внизу */
         }
 
         .header {
             text-align: center;
             margin: 10px 0 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .header h1 {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             color: #111;
+        }
+
+        .btn-clear-chat {
+            background-color: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-clear-chat:active {
+            background-color: #fecaca;
         }
 
         .card {
@@ -64,13 +82,6 @@
             padding: 0 16px;
             font-weight: 600;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-save-key:active {
-            background-color: #059669;
         }
 
         .api-status-badge {
@@ -80,29 +91,98 @@
             background-color: #ecfdf5;
             color: #047857;
             border: 1px solid #a7f3d0;
-            padding: 8px 14px;
+            padding: 6px 12px;
             border-radius: 20px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
+        }
+
+        /* Чат стрічка */
+        #chatContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-bubble {
+            padding: 12px 14px;
+            border-radius: 14px;
+            font-size: 0.92rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            max-width: 90%;
+            word-break: break-word;
+        }
+
+        .chat-bubble.user {
+            align-self: flex-end;
+            background-color: #0066cc;
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .chat-bubble.assistant {
+            align-self: flex-start;
+            background-color: #ffffff;
+            color: #1f2937;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            border-bottom-left-radius: 2px;
+            width: 100%;
+        }
+
+        .chat-bubble img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        /* Фіксована панель вводу внизу */
+        .bottom-control-panel {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 650px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 10px 12px 16px 12px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+        }
+
+        /* Компактний стан при скролі вниз */
+        .bottom-control-panel.minimized {
+            transform: translateX(-50%) translateY(35px);
+            opacity: 0.85;
+        }
+
+        .bottom-control-panel.minimized textarea {
+            height: 40px;
         }
 
         .search-box-wrapper {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
         textarea {
             width: 100%;
-            height: 90px;
-            padding: 12px;
+            height: 75px;
+            padding: 10px;
             border: 1px solid #e0e0e0;
             border-radius: 12px;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             resize: none;
             outline: none;
             background-color: #fafafa;
+            transition: height 0.3s ease;
         }
 
         textarea:focus {
@@ -113,15 +193,14 @@
         .preview-wrapper {
             position: relative;
             display: inline-block;
-            max-width: 100px;
-            margin-top: 5px;
+            max-width: 70px;
         }
 
         .preview-wrapper img {
-            width: 100px;
-            height: 100px;
+            width: 70px;
+            height: 70px;
             object-fit: cover;
-            border-radius: 10px;
+            border-radius: 8px;
             border: 1px solid #ddd;
         }
 
@@ -133,21 +212,19 @@
             color: white;
             border: none;
             border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            font-size: 12px;
+            width: 20px;
+            height: 20px;
+            font-size: 11px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
         }
 
         .action-bar {
             display: flex;
             gap: 8px;
             align-items: center;
-            margin-top: 5px;
         }
 
         .btn-attach {
@@ -158,11 +235,10 @@
             background-color: #f3f4f6;
             border: 1px solid #d1d5db;
             border-radius: 12px;
-            padding: 12px;
             cursor: pointer;
-            font-size: 1.3rem;
-            width: 50px;
-            height: 50px;
+            font-size: 1.2rem;
+            width: 46px;
+            height: 46px;
             flex-shrink: 0;
         }
 
@@ -178,10 +254,10 @@
 
         .btn-send {
             flex-grow: 1;
-            height: 50px;
+            height: 46px;
             background-color: #0066cc;
             color: white;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             border: none;
             border-radius: 12px;
@@ -189,12 +265,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            transition: background 0.2s;
-        }
-
-        .btn-send:active {
-            background-color: #0052a3;
+            gap: 6px;
         }
 
         .btn-send:disabled {
@@ -202,47 +273,44 @@
             cursor: not-allowed;
         }
 
-        .result-box {
-            background-color: #ffffff;
-            border-radius: 12px;
-            padding: 14px;
-            white-space: pre-wrap;
-            font-size: 0.92rem;
-            line-height: 1.5;
-            color: #1f2937;
-        }
-
-        .loading {
+        .loading-status {
             text-align: center;
-            padding: 15px;
-            display: none;
+            padding: 10px;
             font-weight: 600;
             color: #0066cc;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
+            display: none;
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>🔍 Асистент Продавця & Сканер</h1>
+        <h1>🔍 Асистент & Сканер</h1>
+        <button class="btn-clear-chat" onclick="clearChatHistory()">🧹 Очистити чат</button>
     </div>
 
     <div class="api-config-container">
         <div id="apiKeyForm" class="card api-config-input">
             <input type="text" id="apiKey" placeholder="Введіть Gemini API Key..." onkeypress="handleKeyKeyPress(event)">
-            <button type="button" class="btn-save-key" id="saveKeyBtn" onclick="saveApiKey()">💾 Зберегти</button>
+            <button type="button" class="btn-save-key" onclick="saveApiKey()">💾 Зберегти</button>
         </div>
 
-        <div id="apiStatusBadge" class="api-status-badge" style="display: none;" onclick="toggleKeyEdit()" title="Натисніть, щоб змінити ключ">
-            🟢 API ключ підключено ⚙️ (змінити)
+        <div id="apiStatusBadge" class="api-status-badge" style="display: none;" onclick="toggleKeyEdit()">
+            🟢 API підключено ⚙️ (змінити)
         </div>
     </div>
 
-    <div class="card">
+    <!-- Область повідомлень чату -->
+    <div id="chatContainer"></div>
+
+    <div id="loading" class="loading-status">
+        ⏳ Пошук інформації та обробка запиту... Зачекайте.
+    </div>
+
+    <!-- Зафіксована нижня панель вводу -->
+    <div class="bottom-control-panel" id="bottomPanel">
         <div class="search-box-wrapper">
-            <textarea id="promptInput" placeholder="Введіть запит (наприклад: 'Порівняй з конкурентами') або додайте фото цінника..."></textarea>
-            
             <div id="previewContainer" style="display: none;">
                 <div class="preview-wrapper">
                     <img id="previewImg" src="" alt="Фото">
@@ -250,29 +318,66 @@
                 </div>
             </div>
 
+            <textarea id="promptInput" placeholder="Введіть запит або додайте фото цінника..."></textarea>
+
             <div class="action-bar">
                 <div class="btn-attach" title="Прикріпити фото / Зробити знімок">
                     📷
                     <input type="file" id="imageInput" accept="image/*" capture="environment" onchange="handleImageSelect(event)">
                 </div>
                 <button id="sendBtn" class="btn-send" onclick="sendQuery()">
-                    🚀 Запитати / Проаналізувати
+                    🚀 Надіслати
                 </button>
             </div>
         </div>
     </div>
 
-    <div id="loading" class="loading">
-        ⏳ Запит обробляється ШІ... Зачекайте декілька секунд.
-    </div>
-
-    <div id="resultCard" class="card" style="display: none;">
-        <h3 style="margin-bottom: 10px; font-size: 1rem; border-bottom: 1px solid #eee; padding-bottom: 6px;">📊 Відповідь асистента:</h3>
-        <div id="resultText" class="result-box"></div>
-    </div>
-
     <script>
         let selectedBase64Image = "";
+        let chatHistory = [];
+        let lastScrollTop = 0;
+
+        const SYSTEM_PROMPT = `Ти — винятково професійний продавець-консультант побутової техніки та електроніки. 
+Твоя база знань ТА ОБОВ'ЯЗКОВИЙ ПОШУК мають бути максимально актуальними на поточний момент.
+
+ОБОВ'ЯЗКОВА ІНСТРУКЦІЯ ПОШУКУ (ОБОВ'ЯЗКОВО ДЛЯ КОЖНОГО ЗАПИТУ):
+1. ПЕРЕД ТИМ як сказати, що модель не існує, незанонсована чи відсутня — ЗРОБИ ГЛИБОКИЙ ПОШУК В ІНТЕРНЕТІ.
+2. Якщо інформації немає на офіційному сайті виробника, ОБОВ'ЯЗКОВО шукай на товарних агрегаторах та в українських ритейлерах (Rozetka, Comfy, Foxtrot, ALLO, Hotline, E-Katalog).
+3. Якщо інформації про ціну в конкретному магазині немає навіть після пошуку — пиши "Невідомо".
+4. Пам'ятай контекст попередньої розмови! Якщо користувач ставить уточнююче запитання (наприклад: "які є версії пам'яті?", "а які кольори?", "порівняй з конкуретом"), відповідай безпосередньо в контексті товару, про який йшла мова вище.
+
+ОБОВ'ЯЗКОВІ ПРАВИЛА:
+1. НІКОЛИ не вигадуй характеристики чи ціни. Жодних вступних слів або привітань ("Вітаю", "Я консультант" тощо). Одразу по суті.
+2. Якщо в чаті задається ДОДАТКОВЕ або УТОЧНЮЮЧЕ запитання: дай на нього пряму, коротку та вичерпну відповідь без повторного виведення всього великого шаблону.
+3. Формат первинного аналізу товару (коли модель запитують уперше або дають нове фото):
+
+📌 Товар: [Точна назва та модель]
+🏷 Ціна на ціннику / середня ціна: [Ціна] грн
+
+📋 ХАРАКТЕРИСТИКИ:
+- Категорія: [Ноутбук / Телевізор / Смартфон / тощо]
+- Процесор / Чіпсет: [Модель, кількість ядер, частота]
+- Відеокарта / Графіка: [Модель або Не застосовується]
+- Оперативна пам'ять: [Об'єм (ГБ), тип]
+- Накопичувач: [Об'єм, тип]
+- Екран: [Діагональ, тип матриці, частота оновлення (Гц)]
+- Блок живлення / Зарядка: [Потужність у Ватах (W), ємність акумулятора]
+- Ключові особливості: [2-3 головні фішки товару]
+
+💰 ЦІНИ В УКРАЇНСЬКИХ МЕРЕЖАХ:
+- Rozetka: [Ціна грн або Невідомо]
+- Comfy: [Ціна грн або Невідомо]
+- Foxtrot: [Ціна грн або Невідомо]
+- ALLO: [Ціна грн або Невідомо]
+
+💡 КОРОТКИЙ ВЕРДИКТ КОНСУЛЬТАНТА:
+[1-2 речення з професійною порадою та оцінкою доцільності покупки]`;
+
+        const MODELS_TO_TRY = [
+            "gemini-3.6-flash",
+            "gemini-3.8-flash",
+            "gemini-3.5-flash-lite"
+        ];
 
         document.addEventListener("DOMContentLoaded", () => {
             const savedKey = localStorage.getItem("gemini_api_key");
@@ -280,6 +385,29 @@
                 document.getElementById("apiKey").value = savedKey;
                 showStatusBadge();
             }
+
+            const savedChat = localStorage.getItem("gemini_chat_history");
+            if (savedChat) {
+                try {
+                    chatHistory = JSON.parse(savedChat);
+                    renderChat();
+                } catch(e) {
+                    chatHistory = [];
+                }
+            }
+        });
+
+        // Логіка згортання панелі при скролі
+        window.addEventListener("scroll", () => {
+            const st = window.pageYOffset || document.documentElement.scrollTop;
+            const panel = document.getElementById("bottomPanel");
+            
+            if (st > lastScrollTop && st > 80) {
+                panel.classList.add("minimized");
+            } else {
+                panel.classList.remove("minimized");
+            }
+            lastScrollTop = st <= 0 ? 0 : st;
         });
 
         function handleKeyKeyPress(event) {
@@ -296,7 +424,7 @@
                 localStorage.setItem("gemini_api_key", key);
                 showStatusBadge();
             } else {
-                alert("Будь ласка, введіть свій Gemini API Key перед збереженням!");
+                alert("Введіть свій Gemini API Key!");
             }
         }
 
@@ -329,54 +457,41 @@
             document.getElementById('previewContainer').style.display = 'none';
         }
 
-        const SYSTEM_PROMPT = `Ти — винятково професійний продавець-консультант побутової техніки та електроніки. 
-Твоя база знань та пошук мають бути максимально актуальними на поточний момент часу.
+        function clearChatHistory() {
+            if (confirm("Ви дійсно бажаєте очистити історію чату?")) {
+                chatHistory = [];
+                localStorage.removeItem("gemini_chat_history");
+                renderChat();
+            }
+        }
 
-ДЖЕРЕЛА ДАНИХ ТА ІЄРАРХІЯ ПОШУКУ:
-1. ПЕРШОЧЕРГОВЕ ДЖЕРЕЛО: Офіційні сайти виробників (Apple, Samsung, Asus, Lenovo тощо) та провідні мережі України (Rozetka, Comfy, Foxtrot, ALLO).
-2. Якщо інформації немає в первинних та офіційних джерелах — стандартно вказуй "Невідомо".
-3. ВИНОТОК (Розширений пошук): Якщо у запиті користувача є вказівка шукати не лише з офіційних джерел (наприклад: "шукай всюди", "розширений пошук", "знайди в інтернеті"), дозволено використовувати будь-які відкриті джерела в мережі.
+        function renderChat() {
+            const container = document.getElementById("chatContainer");
+            container.innerHTML = "";
 
-ОБОВ'ЯЗКОВІ ПРАВИЛА:
-1. НІКОЛИ не вигадуй характеристики чи ціни. Жодних вступних слів або привітань ("Вітаю", "Я консультант" тощо). Одразу по суті.
-2. Якщо надано 2 або більше фото цінників / товарів: зроби коротке порівняння між ними:
-   - Переваги та недоліки кожного
-   - Чому один варіант кращий/гірший за інший
-   - Підсумкова рекомендація, що обрати
-3. Якщо запит містить суто назву моделі та фразу "порівняй з конкурентами" (або "конкуренти"): не перевантажуй відповідь списком характеристик, а надай пряме порівняння цін між офіційними джерелами та конкурентами + короткий вердикт щодо вигоди.
-4. Якщо надано ДОДАТКОВЕ запитання: дай на нього пряму та вичерпну відповідь без повторного виведення повного шаблону.
+            chatHistory.forEach(msg => {
+                const bubble = document.createElement("div");
+                bubble.className = `chat-bubble ${msg.role === 'user' ? 'user' : 'assistant'}`;
 
-ФОРМАТ ПЕРВИННОЇ ВІДПОВІДІ (коли надано фото одного цінника або назву моделі):
+                if (msg.role === 'user') {
+                    let textContent = "";
+                    msg.parts.forEach(p => {
+                        if (p.text) textContent += p.text;
+                    });
+                    bubble.textContent = textContent;
+                } else {
+                    let textContent = "";
+                    msg.parts.forEach(p => {
+                        if (p.text) textContent += p.text;
+                    });
+                    bubble.textContent = textContent;
+                }
 
-📌 Товар: [Точна назва та модель]
-🏷 Ціна на ціннику / середня ціна: [Ціна] грн
+                container.appendChild(bubble);
+            });
 
-📋 ХАРАКТЕРИСТИКИ:
-- Категорія: [Ноутбук / Телевізор / Смартфон / тощо]
-- Процесор / Чіпсет: [Модель, кількість ядер, частота або Невідомо]
-- Відеокарта: [Модель, об'єм VRAM (ГБ), тип (GDDR6/GDDR7), TGP у Ватах (W) або Невідомо]
-- Оперативна пам'ять: [Об'єм (ГБ), тип (DDR4/LPDDR5/DDR5), частота (МГц) або Невідомо]
-- Апгрейд ОЗП: [Чи є вільний слот / распаяна / максимальний об'єм / Невідомо]
-- Накопичувач: [Об'єм, тип (NVMe SSD/eMMC), чи є додатковий слот M.2 або Невідомо]
-- Екран: [Діагональ, тип матриці (IPS/OLED/VA), частота оновлення (Гц) або Невідомо]
-- Блок живлення / Зарядка: [Потужність у Ватах (W), підтримка Power Delivery або Невідомо]
-- Ключові особливості: [2-3 головні фішки товару з офіційного сайту]
-
-💰 ЦІНИ В УКРАЇНСЬКИХ МЕРЕЖАХ:
-- Expert: https://expert24.com.ua [Ціна грн або Невідомо]
-- Rozetka: [Ціна грн або Невідомо]
-- Comfy: [Ціна грн або Невідомо]
-- Foxtrot: [Ціна грн або Невідомо]
-- ALLO: [Ціна грн або Невідомо]
-
-💡 КОРОТКИЙ ВЕРДИКТ КОНСУЛЬТАНТА:
-[1-2 речення з професійною порадою та оцінкою доцільності покупки]`;
-
-        const MODELS_TO_TRY = [
-            "gemini-3.6-flash",
-            "gemini-3.8-flash",
-            "gemini-3.5-flash-lite"
-        ];
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
 
         async function sendQuery() {
             const apiKey = (localStorage.getItem("gemini_api_key") || document.getElementById("apiKey").value).trim();
@@ -389,35 +504,52 @@
             }
 
             if (!textQuery && !selectedBase64Image) {
-                alert("Будь ласка, введіть запит або додайте фотографію!");
+                alert("Будь ласка, введіть запит або додайте фотографія!");
                 return;
             }
 
             const loadingEl = document.getElementById("loading");
-            const resultCardEl = document.getElementById("resultCard");
-            const resultTextEl = document.getElementById("resultText");
             const sendBtn = document.getElementById("sendBtn");
 
             loadingEl.style.display = "block";
-            resultCardEl.style.display = "none";
             sendBtn.disabled = true;
 
-            const parts = [];
-
+            // Формування структури поточного повідомлення користувача
+            const userParts = [];
             if (textQuery) {
-                parts.push({ text: `Запит користувача: ${textQuery}` });
+                userParts.push({ text: textQuery });
             } else {
-                parts.push({ text: "Проаналізуй фотографію цінника/товару та видай структуровану інформацію." });
+                userParts.push({ text: "Проаналізуй фотографію цінника/товару та видай структуровану інформацію." });
             }
 
             if (selectedBase64Image) {
-                parts.push({
+                userParts.push({
                     inline_data: {
                         mime_type: "image/jpeg",
                         data: selectedBase64Image
                     }
                 });
             }
+
+            // Додаємо повідомлення користувача в історію
+            chatHistory.push({
+                role: "user",
+                parts: userParts
+            });
+
+            renderChat();
+
+            // Очищуємо поле вводу та фото
+            document.getElementById("promptInput").value = "";
+            removeImage();
+
+            // Формуємо контекст для відправки в API (конвертуємо фото для економії, залишаючи в історії)
+            const apiContents = chatHistory.map(item => {
+                return {
+                    role: item.role,
+                    parts: item.parts
+                };
+            });
 
             let success = false;
             let lastErrorMsg = "";
@@ -433,20 +565,22 @@
                             system_instruction: {
                                 parts: [{ text: SYSTEM_PROMPT }]
                             },
-                            contents: [
-                                {
-                                    role: "user",
-                                    parts: parts
-                                }
-                            ]
+                            contents: apiContents
                         })
                     });
 
                     const data = await response.json();
 
                     if (response.ok && data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
-                        resultTextEl.textContent = data.candidates[0].content.parts[0].text;
-                        resultCardEl.style.display = "block";
+                        const replyText = data.candidates[0].content.parts[0].text;
+                        
+                        chatHistory.push({
+                            role: "model",
+                            parts: [{ text: replyText }]
+                        });
+
+                        localStorage.setItem("gemini_chat_history", JSON.stringify(chatHistory));
+                        renderChat();
                         success = true;
                         break;
                     } else if (data.error) {
@@ -459,8 +593,11 @@
             }
 
             if (!success) {
-                resultTextEl.textContent = "Помилка API: " + (lastErrorMsg || "Не вдалося отримати відповідь від жодної з моделей Gemini.");
-                resultCardEl.style.display = "block";
+                chatHistory.push({
+                    role: "model",
+                    parts: [{ text: "❌ Помилка API: " + (lastErrorMsg || "Не вдалося отримати відповідь від моделей Gemini.") }]
+                });
+                renderChat();
             }
 
             loadingEl.style.display = "none";
