@@ -287,18 +287,17 @@
         <button class="btn-clear-chat" onclick="clearChatHistory()">🧹 Очистити чат</button>
     </div>
 
-    <!-- Панель налаштування API -->
     <div class="card config-group">
         <label for="aiProvider">⚡ Обрана нейромережа:</label>
         <select id="aiProvider" onchange="onProviderChange()">
-            <option value="gemini">Google Gemini (gemini-3.6-flash)</option>
+            <option value="gemini">Google Gemini (gemini-2.5-flash)</option>
             <option value="openai">OpenAI ChatGPT (GPT-4o-mini)</option>
             <option value="claude">Anthropic Claude (Claude 3.5 Haiku)</option>
             <option value="openrouter">OpenRouter (Універсальний API)</option>
         </select>
 
         <div class="input-row">
-            <input type="text" id="apiKey" placeholder="Введіть API Key для обраної мережі...">
+            <input type="text" id="apiKey" placeholder="Введіть API Key...">
             <button type="button" class="btn-save-key" onclick="saveCurrentKey()">💾 Зберегти</button>
         </div>
         <div id="keyStatusText" class="status-tag inactive">🔴 Ключ не збережено</div>
@@ -322,7 +321,7 @@
             <textarea id="promptInput" placeholder="Введіть запит або додайте фото цінника..."></textarea>
 
             <div class="action-bar">
-                <div class="btn-attach" title="Прикріпити фото / Зробити знімок">
+                <div class="btn-attach" title="Прикріпити фото">
                     📷
                     <input type="file" id="imageInput" accept="image/*" capture="environment" onchange="handleImageSelect(event)">
                 </div>
@@ -340,10 +339,6 @@
 
         const SYSTEM_PROMPT = `Ти — винятково професійний продавець-консультант побутової техніки та електроніки.
 
-ІНСТРУКЦІЯ ПЕРЕВІРКИ ТОВАРУ:
-1. Перевір наявність товару в українських магазинах (Comfy, Rozetka, Foxtrot, ALLO, Hotline, E-Katalog). Якщо товар продається — він ОФІЦІЙНО ВИЙШОВ.
-2. Якщо користувач ставить уточнююче запитання, відповідай коротко та по суті без повторення повного шаблону.
-
 ПРАВИЛА ВІДПОВІДІ:
 - НІКОЛИ не вигадуй характеристики чи ціни. Без вступних привітань.
 - Шаблон аналізу товару при первинному запиті:
@@ -359,12 +354,6 @@
 - Екран: [Діагональ, матриця]
 - Зарядка / Акумулятор: [Ємність, потужність]
 - Ключові особливості: [Основні фішки]
-
-💰 ЦІНИ В УКРАЇНСЬКИХ МЕРЕЖАХ:
-- Rozetka: [Ціна грн або Невідомо]
-- Comfy: [Ціна грн або Невідомо]
-- Foxtrot: [Ціна грн або Невідомо]
-- ALLO: [Ціна грн або Невідомо]
 
 💡 КОРОТКИЙ ВЕРДИКТ КОНСУЛЬТАНТА:
 [Професійна оцінка покупцю]`;
@@ -471,14 +460,19 @@
 
         async function sendQuery() {
             const provider = document.getElementById("aiProvider").value;
-            const apiKey = localStorage.getItem(`${provider}_key`) || document.getElementById("apiKey").value.trim();
-            const textQuery = document.getElementById("promptInput").value.trim();
+            
+            // Виправлено: Спочатку беремо значення з текстового поля, якщо воно є, і авто-зберігаємо його
+            let apiKey = document.getElementById("apiKey").value.trim() || localStorage.getItem(`${provider}_key`);
 
             if (!apiKey) {
-                alert(`Будь ласка, збережіть API Key для ${provider.toUpperCase()}!`);
+                alert(`Будь ласка, введіть та збережіть API Key для ${provider.toUpperCase()}!`);
                 return;
             }
 
+            localStorage.setItem(`${provider}_key`, apiKey);
+            loadKeyForProvider(provider);
+
+            const textQuery = document.getElementById("promptInput").value.trim();
             if (!textQuery && !selectedBase64Image) {
                 alert("Введіть текст або додайте зображення!");
                 return;
@@ -524,7 +518,7 @@
             sendBtn.disabled = false;
         }
 
-        // --- Google Gemini API (Версія 3.6 Flash) ---
+        // --- Google Gemini API ---
         async function callGeminiAPI(apiKey, text, imgBase64) {
             const contents = chatHistory.map(m => ({
                 role: m.role === 'user' ? 'user' : 'model',
@@ -537,13 +531,13 @@
                 });
             }
 
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
+            // Виправлено: прибрано google_search, який блокувався на Free Tier
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-                    contents: contents,
-                    tools: [{ google_search: {} }]
+                    contents: contents
                 })
             });
 
@@ -633,7 +627,7 @@
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: "google/gemini-3.6-flash",
+                    model: "google/gemini-2.5-flash",
                     messages: messages
                 })
             });
