@@ -61,9 +61,16 @@
             color: white;
             border: none;
             border-radius: 10px;
-            padding: 0 14px;
+            padding: 0 16px;
             font-weight: 600;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-save-key:active {
+            background-color: #059669;
         }
 
         .api-status-badge {
@@ -73,9 +80,9 @@
             background-color: #ecfdf5;
             color: #047857;
             border: 1px solid #a7f3d0;
-            padding: 6px 12px;
+            padding: 8px 14px;
             border-radius: 20px;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
         }
@@ -218,23 +225,23 @@
 <body>
 
     <div class="header">
-        <h1>🔍 Асистент Продавця & Сканер👤</h1>
+        <h1>🔍 Асистент Продавця & Сканер</h1>
     </div>
 
     <div class="api-config-container">
         <div id="apiKeyForm" class="card api-config-input">
-            <input type="password" id="apiKey" placeholder="Введіть Gemini API Key і натисніть Enter" onkeypress="handleKeyKeyPress(event)">
-            <button class="btn-save-key" onclick="saveApiKey()">💾</button>
+            <input type="text" id="apiKey" placeholder="Введіть Gemini API Key..." onkeypress="handleKeyKeyPress(event)">
+            <button type="button" class="btn-save-key" id="saveKeyBtn" onclick="saveApiKey()">💾 Зберегти</button>
         </div>
 
         <div id="apiStatusBadge" class="api-status-badge" style="display: none;" onclick="toggleKeyEdit()" title="Натисніть, щоб змінити ключ">
-            🟢 API підключено ⚙️
+            🟢 API ключ підключено ⚙️ (змінити)
         </div>
     </div>
 
     <div class="card">
         <div class="search-box-wrapper">
-            <textarea id="promptInput" placeholder="Введіть запит (наприклад: 'Порівняй ці дві моделі', 'Яка зарядка у цієї моделі?') або просто додайте фото цінника..."></textarea>
+            <textarea id="promptInput" placeholder="Введіть запит (наприклад: 'Порівняй з конкурентами') або додайте фото цінника..."></textarea>
             
             <div id="previewContainer" style="display: none;">
                 <div class="preview-wrapper">
@@ -265,13 +272,11 @@
     </div>
 
     <script>
-        const DEFAULT_API_KEY = ""; 
-
         let selectedBase64Image = "";
 
         document.addEventListener("DOMContentLoaded", () => {
-            const savedKey = localStorage.getItem("gemini_api_key") || DEFAULT_API_KEY;
-            if (savedKey) {
+            const savedKey = localStorage.getItem("gemini_api_key");
+            if (savedKey && savedKey.trim() !== "") {
                 document.getElementById("apiKey").value = savedKey;
                 showStatusBadge();
             }
@@ -285,12 +290,13 @@
         }
 
         function saveApiKey() {
-            const key = document.getElementById("apiKey").value.trim();
-            if (key) {
+            const keyInput = document.getElementById("apiKey");
+            const key = keyInput.value.trim();
+            if (key.length > 0) {
                 localStorage.setItem("gemini_api_key", key);
                 showStatusBadge();
             } else {
-                alert("Будь ласка, введіть дійсний API ключ.");
+                alert("Будь ласка, введіть свій Gemini API Key перед збереженням!");
             }
         }
 
@@ -323,24 +329,21 @@
             document.getElementById('previewContainer').style.display = 'none';
         }
 
-        const SYSTEM_PROMPT = `Ти — чесний, винятково професійний продавець-консультант побутової техніки та електроніки. 
-
-Ти — винятково професійний продавець-консультант побутової техніки та електроніки. 
+        const SYSTEM_PROMPT = `Ти — винятково професійний продавець-консультант побутової техніки та електроніки. 
 Твоя база знань та пошук мають бути максимально актуальними на поточний момент часу.
 
 ДЖЕРЕЛА ДАНИХ ТА ІЄРАРХІЯ ПОШУКУ:
-1. ПЕРШОЧЕРГОВЕ ДЖЕРЕЛО: Офіційний сайт нашого магазину [ВСТАВТЕ_ПОСИЛАННЯ_НА_САЙТ].
-2. ОФІЦІЙНІ ДЖЕРЕЛА: Офіційні сайти виробників (Apple, Samsung, Asus тощо) та провідні мережі України (Rozetka, Comfy, Foxtrot, ALLO).
-3. Якщо інформації немає в первинних та офіційних джерелах — стандартно вказуй "Невідомо".
-4. ВИНОТОК (Розширений пошук): Якщо у запиті користувача є вказівка шукати не лише з офіційних джерел (наприклад: "шукай всюди", "розширений пошук", "знайди в інтернеті"), дозволено використовувати будь-які відкриті джерела в мережі.
+1. ПЕРШОЧЕРГОВЕ ДЖЕРЕЛО: Офіційні сайти виробників (Apple, Samsung, Asus, Lenovo тощо) та провідні мережі України (Rozetka, Comfy, Foxtrot, ALLO).
+2. Якщо інформації немає в первинних та офіційних джерелах — стандартно вказуй "Невідомо".
+3. ВИНОТОК (Розширений пошук): Якщо у запиті користувача є вказівка шукати не лише з офіційних джерел (наприклад: "шукай всюди", "розширений пошук", "знайди в інтернеті"), дозволено використовувати будь-які відкриті джерела в мережі.
 
 ОБОВ'ЯЗКОВІ ПРАВИЛА:
 1. НІКОЛИ не вигадуй характеристики чи ціни. Жодних вступних слів або привітань ("Вітаю", "Я консультант" тощо). Одразу по суті.
-2. Якщо надано 2 або більше фото цінників / товарів: зроби коротке порівняння між ними за формою:
+2. Якщо надано 2 або більше фото цінників / товарів: зроби коротке порівняння між ними:
    - Переваги та недоліки кожного
    - Чому один варіант кращий/гірший за інший
    - Підсумкова рекомендація, що обрати
-3. Якщо запит містить суто назву моделі та фразу "порівняй з конкурентами" (або "конкуренти"): не перевантажуй відповідь списком характеристик, а надай пряме порівняння цін між нашим сайтом, офіційними джерелами та конкурентами + короткий вердикт щодо вигоди.
+3. Якщо запит містить суто назву моделі та фразу "порівняй з конкурентами" (або "конкуренти"): не перевантажуй відповідь списком характеристик, а надай пряме порівняння цін між офіційними джерелами та конкурентами + короткий вердикт щодо вигоди.
 4. Якщо надано ДОДАТКОВЕ запитання: дай на нього пряму та вичерпну відповідь без повторного виведення повного шаблону.
 
 ФОРМАТ ПЕРВИННОЇ ВІДПОВІДІ (коли надано фото одного цінника або назву моделі):
@@ -361,15 +364,14 @@
 
 💰 ЦІНИ В УКРАЇНСЬКИХ МЕРЕЖАХ:
 - Expert: https://expert24.com.ua [Ціна грн або Невідомо]
-- Rozetka: https://rozetka.com.ua [Ціна грн або Невідомо]
-- Comfy: https://comfy.ua [Ціна грн або Невідомо]
-- Foxtrot: https://www.foxtrot.com.ua [Ціна грн або Невідомо]
-- ALLO: https://allo.ua [Ціна грн або Невідомо]
+- Rozetka: [Ціна грн або Невідомо]
+- Comfy: [Ціна грн або Невідомо]
+- Foxtrot: [Ціна грн або Невідомо]
+- ALLO: [Ціна грн або Невідомо]
 
 💡 КОРОТКИЙ ВЕРДИКТ КОНСУЛЬТАНТА:
-[1-2 речення з професійною порадою та оцінкою доцільності покупки];
+[1-2 речення з професійною порадою та оцінкою доцільності покупки]`;
 
-        // Актуальні назви моделей Google Gemini
         const MODELS_TO_TRY = [
             "gemini-3.6-flash",
             "gemini-3.8-flash",
@@ -377,11 +379,11 @@
         ];
 
         async function sendQuery() {
-            const apiKey = (localStorage.getItem("gemini_api_key") || DEFAULT_API_KEY || document.getElementById("apiKey").value).trim();
+            const apiKey = (localStorage.getItem("gemini_api_key") || document.getElementById("apiKey").value).trim();
             const textQuery = document.getElementById("promptInput").value.trim();
 
             if (!apiKey) {
-                alert("Будь ласка, введіть ваш Gemini API Key!");
+                alert("Будь ласка, спочатку введіть і збережіть ваш Gemini API Key!");
                 toggleKeyEdit();
                 return;
             }
