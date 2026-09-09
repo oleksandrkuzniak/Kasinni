@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Консультант & Сканер Цінників</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f6f8;
+            color: #1a1a1a;
+            padding: 12px;
+            max-width: 600px;
+            margin: 0 auto;
+            padding-bottom: 30px;
+        }
+
+        .header {
+            text-align: center;
+            margin: 10px 0 15px 0;
+        }
+
+        .header h1 {
+            font-size: 1.3rem;
+            color: #111;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+        }
+
+        /* Налаштування API Ключа */
+        .api-config-container {
+            margin-bottom: 12px;
+        }
+
+        .api-config-input {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .api-config-input input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 0.85rem;
+        }
+
+        .btn-save-key {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .api-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Блок вводу запиту */
+        .search-box-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 90px;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            resize: none;
+            outline: none;
+            background-color: #fafafa;
+        }
+
+        textarea:focus {
+            border-color: #0066cc;
+            background-color: #fff;
+        }
+
+        /* Прев'ю прикріпленого фото */
+        .preview-wrapper {
+            position: relative;
+            display: inline-block;
+            max-width: 100px;
+            margin-top: 5px;
+        }
+
+        .preview-wrapper img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Панель дій */
+        .action-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .btn-attach {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            width: 50px;
+            height: 50px;
+            flex-shrink: 0;
+        }
+
+        .btn-attach input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .btn-send {
+            flex-grow: 1;
+            height: 50px;
+            background-color: #0066cc;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-send:active {
+            background-color: #0052a3;
+        }
+
+        .btn-send:disabled {
+            background-color: #93c5fd;
+            cursor: not-allowed;
+        }
+
+        /* Блок результату */
+        .result-box {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 14px;
+            white-space: pre-wrap;
+            font-size: 0.92rem;
+            line-height: 1.5;
+            color: #1f2937;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 15px;
+            display: none;
+            font-weight: 600;
+            color: #0066cc;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🔍 Асистент Продавця & Сканер</h1>
+    </div>
+
+    <!-- Блок API ключа -->
+    <div class="api-config-container">
+        <!-- Форма вводу (якщо ключ ще не введено) -->
+        <div id="apiKeyForm" class="card api-config-input">
+            <input type="password" id="apiKey" placeholder="Введіть Gemini API Key і натисніть Enter" onkeypress="handleKeyKeyPress(event)">
+            <button class="btn-save-key" onclick="saveApiKey()">💾</button>
+        </div>
+
+        <!-- Іконка підтвердження (коли ключ вже збережено) -->
+        <div id="apiStatusBadge" class="api-status-badge" style="display: none;" onclick="toggleKeyEdit()" title="Натисніть, щоб змінити ключ">
+            🟢 API ключ підключено ⚙️
+        </div>
+    </div>
+
+    <!-- Основний блок запиту -->
+    <div class="card">
+        <div class="search-box-wrapper">
+            <textarea id="promptInput" placeholder="Введіть запит (наприклад: 'Порівняй ці дві моделі', 'Яка зарядка у цієї моделі?') або просто додайте фото цінника..."></textarea>
+            
+            <div id="previewContainer" style="display: none;">
+                <div class="preview-wrapper">
+                    <img id="previewImg" src="" alt="Фото">
+                    <button class="remove-btn" onclick="removeImage()">✕</button>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <div class="btn-attach" title="Прикріпити фото / Зробити знімок">
+                    📷
+                    <input type="file" id="imageInput" accept="image/*" capture="environment" onchange="handleImageSelect(event)">
+                </div>
+                <button id="sendBtn" class="btn-send" onclick="sendQuery()">
+                    🚀 Запитати / Проаналізувати
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading" class="loading">
+        ⏳ Запит обробляється ШІ... Зачекайте декілька секунд.
+    </div>
+
+    <div id="resultCard" class="card" style="display: none;">
+        <h3 style="margin-bottom: 10px; font-size: 1rem; border-bottom: 1px solid #eee; padding-bottom: 6px;">📊 Відповідь асистента:</h3>
+        <div id="resultText" class="result-box"></div>
+    </div>
+
+    <script>
+        // ВАЖЛИВО: Якщо ви хочете вшити ваш API ключ прямо в код, вставте його між лапками нижче:
+        const DEFAULT_API_KEY = ""; 
+
+        let selectedBase64Image = "";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const savedKey = localStorage.getItem("gemini_api_key") || DEFAULT_API_KEY;
+            if (savedKey) {
+                document.getElementById("apiKey").value = savedKey;
+                showStatusBadge();
+            }
+        });
+
+        function handleKeyKeyPress(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                saveApiKey();
+            }
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById("apiKey").value.trim();
+            if (key) {
+                localStorage.setItem("gemini_api_key", key);
+                showStatusBadge();
+            } else {
+                alert("Будь ласка, введіть дійсний API ключ.");
+            }
+        }
+
+        function showStatusBadge() {
+            document.getElementById("apiKeyForm").style.display = "none";
+            document.getElementById("apiStatusBadge").style.display = "inline-flex";
+        }
+
+        function toggleKeyEdit() {
+            document.getElementById("apiKeyForm").style.display = "flex";
+            document.getElementById("apiStatusBadge").style.display = "none";
+        }
+
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    selectedBase64Image = e.target.result.split(',')[1];
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('previewContainer').style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeImage() {
+            selectedBase64Image = "";
+            document.getElementById('imageInput').value = "";
+            document.getElementById('previewContainer').style.display = 'none';
+        }
+
+        const SYSTEM_PROMPT = `
+Ти — чесний, винятково професійний продавець-консультант побутової техніки та електроніки. 
+
+ОБОВ'ЯЗКОВІ ПРАВИЛА:
+1. НІКОЛИ не вигадуй характеристики чи ціни. Якщо інформації немає в запиті/на фото і ти не впевнений на 100% — пиши слово "Невідомо".
+2. Будь чесним. Якщо питають пораду — відповідай як професіонал, розкриваючи мінуси та плюси товарів.
+
+СЦЕНАРІЇ ВІДПОВІДІ:
+- Якщо надано лише фото цінника: видай структуровану картку товару (Товар, Ціна, Характеристики, Ціни у конкурентів, Вердикт).
+- Якщо надано текстове питання (з фото чи без): дай вичерпну, професійну та розгортану відповідь.
+`;
+
+        async function sendQuery() {
+            const apiKey = (localStorage.getItem("gemini_api_key") || DEFAULT_API_KEY || document.getElementById("apiKey").value).trim();
+            const textQuery = document.getElementById("promptInput").value.trim();
+
+            if (!apiKey) {
+                alert("Будь ласка, введіть вашого Gemini API Key!");
+                toggleKeyEdit();
+                return;
+            }
+
+            if (!textQuery && !selectedBase64Image) {
+                alert("Будь ласка, введіть запит або додайте фотографію!");
+                return;
+            }
+
+            const loadingEl = document.getElementById("loading");
+            const resultCardEl = document.getElementById("resultCard");
+            const resultTextEl = document.getElementById("resultText");
+            const sendBtn = document.getElementById("sendBtn");
+
+            loadingEl.style.display = "block";
+            resultCardEl.style.display = "none";
+            sendBtn.disabled = true;
+
+            const userContentParts = [
+                { text: SYSTEM_PROMPT }
+            ];
+
+            if (textQuery) {
+                userContentParts.push({ text: `Запит користувача: ${textQuery}` });
+            } else {
+                userContentParts.push({ text: "Проаналізуй фотографію цінника/товару та видай структуровану інформацію." });
+            }
+
+            if (selectedBase64Image) {
+                userContentParts.push({
+                    inline_data: {
+                        mime_type: "image/jpeg",
+                        data: selectedBase64Image
+                    }
+                });
+            }
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [
+                            {
+                                role: "user",
+                                parts: userContentParts
+                            }
+                        ]
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    resultTextEl.textContent = "Помилка API: " + data.error.message;
+                    resultCardEl.style.display = "block";
+                } else if (data.candidates && data.candidates[0].content.parts[0].text) {
+                    resultTextEl.textContent = data.candidates[0].content.parts[0].text;
+                    resultCardEl.style.display = "block";
+                } else {
+                    resultTextEl.textContent = "Не вдалося отримати відповідь. Спробуйте уточнити запит.";
+                    resultCardEl.style.display = "block";
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Помилка під час з'єднання. Перевірте API ключ та підключення до мережі.");
+            } finally {
+                loadingEl.style.display = "none";
+                sendBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
