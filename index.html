@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Асистент Продавця & Сканер (Gemini 3.6 Flash)</title>
+    <title>Асистент Продавця & Сканер</title>
     <style>
         * {
             box-sizing: border-box;
@@ -21,6 +21,7 @@
             padding-bottom: 220px;
         }
 
+        /* Шапка */
         .header {
             text-align: center;
             margin: 10px 0 15px 0;
@@ -34,48 +35,110 @@
             color: #111;
         }
 
-        .btn-clear-chat {
-            background-color: #fee2e2;
-            color: #dc2626;
-            border: 1px solid #fca5a5;
-            padding: 6px 12px;
+        /* Квадратна кнопка налаштувань */
+        .btn-settings {
+            width: 42px;
+            height: 42px;
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
             border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            transition: background-color 0.2s, transform 0.1s;
         }
 
-        .card {
+        .btn-settings:active {
+            transform: scale(0.95);
+            background-color: #f3f4f6;
+        }
+
+        /* Модальне вікно налаштувань */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
             background: #ffffff;
-            border-radius: 16px;
-            padding: 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-bottom: 15px;
-        }
-
-        .config-group {
+            width: 90%;
+            max-width: 480px;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 16px;
+            position: relative;
+            animation: modalFadeIn 0.25s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.1rem;
+            color: #111;
+        }
+
+        .btn-close-modal {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: #6b7280;
+            padding: 4px;
+        }
+
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
         label {
-            font-size: 0.82rem;
+            font-size: 0.85rem;
             font-weight: 600;
             color: #374151;
         }
 
-        input[type="text"] {
+        select, input[type="text"] {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #d1d5db;
             border-radius: 10px;
-            font-size: 0.88rem;
+            font-size: 0.9rem;
             background: #fff;
             outline: none;
         }
 
-        input[type="text"]:focus {
+        select:focus, input[type="text"]:focus {
             border-color: #0066cc;
         }
 
@@ -96,14 +159,28 @@
         }
 
         .status-tag {
-            font-size: 0.75rem;
-            margin-top: 2px;
+            font-size: 0.78rem;
             font-weight: 600;
+            margin-top: 2px;
         }
 
         .status-tag.active { color: #059669; }
         .status-tag.inactive { color: #dc2626; }
 
+        .btn-danger {
+            background-color: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Чат */
         #chatContainer {
             display: flex;
             flex-direction: column;
@@ -137,6 +214,7 @@
             width: 100%;
         }
 
+        /* Зафіксована панель внизу */
         .bottom-control-panel {
             position: fixed;
             bottom: 0;
@@ -159,10 +237,6 @@
             opacity: 0.85;
         }
 
-        .bottom-control-panel.minimized textarea {
-            height: 40px;
-        }
-
         .search-box-wrapper {
             display: flex;
             flex-direction: column;
@@ -179,7 +253,6 @@
             resize: none;
             outline: none;
             background-color: #fafafa;
-            transition: height 0.3s ease;
         }
 
         textarea:focus {
@@ -262,7 +335,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
         }
 
         .btn-send:disabled {
@@ -282,26 +354,55 @@
 </head>
 <body>
 
+    <!-- Шапка з квадратною кнопкою налаштувань -->
     <div class="header">
-        <h1>🔍 Асистент & Сканер (Gemini 3.6 Flash)</h1>
-        <button class="btn-clear-chat" onclick="clearChatHistory()">🧹 Очистити чат</button>
+        <h1 id="appTitle">🔍 Асистент & Сканер</h1>
+        <button class="btn-settings" onclick="openSettings()" title="Налаштування">⚙️</button>
     </div>
 
-    <div class="card config-group">
-        <label for="apiKey">🔑 API Ключ Google Gemini:</label>
-        <div class="input-row">
-            <input type="text" id="apiKey" placeholder="Введіть ваш Gemini API Key...">
-            <button type="button" class="btn-save-key" onclick="saveKey()">💾 Зберегти</button>
-        </div>
-        <div id="keyStatusText" class="status-tag inactive">🔴 Ключ не збережено</div>
-    </div>
-
+    <!-- Область чату -->
     <div id="chatContainer"></div>
 
     <div id="loading" class="loading-status">
         🌐 Опрацьовую запит... Зачекайте.
     </div>
 
+    <!-- Модальне вікно налаштувань -->
+    <div class="modal-overlay" id="settingsModal" onclick="closeSettingsOnOverlay(event)">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="settingsHeading">⚙️ Налаштування</h2>
+                <button class="btn-close-modal" onclick="closeSettings()">✕</button>
+            </div>
+
+            <!-- Вибір мови -->
+            <div class="setting-item">
+                <label for="langSelect" id="langLabel">🌐 Мова інтерфейсу:</label>
+                <select id="langSelect" onchange="changeLanguage(this.value)">
+                    <option value="ua">Українська 🇺🇦</option>
+                    <option value="en">English 🇬🇧</option>
+                </select>
+            </div>
+
+            <!-- Введення API ключа -->
+            <div class="setting-item">
+                <label for="apiKey" id="keyLabel">🔑 API Ключ Google Gemini:</label>
+                <div class="input-row">
+                    <input type="text" id="apiKey" placeholder="Введіть ваш Gemini API Key...">
+                    <button type="button" class="btn-save-key" id="btnSaveKey" onclick="saveKey()">💾 Зберегти</button>
+                </div>
+                <div id="keyStatusText" class="status-tag inactive">🔴 Ключ не збережено</div>
+            </div>
+
+            <!-- Історія чату -->
+            <div class="setting-item">
+                <label id="historyLabel">📜 Управління чатом:</label>
+                <button class="btn-danger" id="btnClearChat" onclick="clearChatHistory()">🧹 Очистити історію чату</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Нижня панель вводу -->
     <div class="bottom-control-panel" id="bottomPanel">
         <div class="search-box-wrapper">
             <div id="previewContainer" style="display: none;">
@@ -311,7 +412,7 @@
                 </div>
             </div>
 
-            <textarea id="promptInput" placeholder="Введіть запит або додайте фото ценника..."></textarea>
+            <textarea id="promptInput" placeholder="Введіть запит або додайте фото цінника..."></textarea>
 
             <div class="action-bar">
                 <div class="btn-attach" title="Прикріпити фото">
@@ -328,9 +429,57 @@
     <script>
         let selectedBase64Image = "";
         let chatHistory = [];
+        let currentLang = "ua";
         let lastScrollTop = 0;
 
-        const SYSTEM_PROMPT = `Ти — винятково професійний продавець-консультант побутової техніки та електроніки.
+        // Переклади UI
+        const i18n = {
+            ua: {
+                appTitle: "🔍 Асистент & Сканер",
+                settingsHeading: "⚙️ Налаштування",
+                langLabel: "🌐 Мова інтерфейсу:",
+                keyLabel: "🔑 API Ключ Google Gemini:",
+                keyPlaceholder: "Введіть ваш Gemini API Key...",
+                saveBtn: "💾 Зберегти",
+                keyActive: "🟢 Ключ GEMINI активний",
+                keyInactive: "🔴 Введіть API Key",
+                historyLabel: "📜 Управління чатом:",
+                clearChat: "🧹 Очистити історію чату",
+                promptPlaceholder: "Введіть запит або додайте фото цінника...",
+                sendBtn: "🚀 Надіслати",
+                loadingText: "🌐 Опрацьовую запит... Зачекайте.",
+                confirmClear: "Очистити історію чату?",
+                keySaved: "API Ключ успішно збережено!",
+                enterKeyAlert: "Введіть API Key!",
+                noKeyAlert: "Будь ласка, введіть та збережіть Gemini API Key у налаштуваннях (кнопка ⚙️)!",
+                noInputAlert: "Введіть текст або додайте зображення!",
+                defaultImagePrompt: "Проаналізуй зображення цінника/товару."
+            },
+            en: {
+                appTitle: "🔍 Assistant & Scanner",
+                settingsHeading: "⚙️ Settings",
+                langLabel: "🌐 Interface Language:",
+                keyLabel: "🔑 Google Gemini API Key:",
+                keyPlaceholder: "Enter your Gemini API Key...",
+                saveBtn: "💾 Save",
+                keyActive: "🟢 GEMINI Key Active",
+                keyInactive: "🔴 Enter API Key",
+                historyLabel: "📜 Chat Management:",
+                clearChat: "🧹 Clear Chat History",
+                promptPlaceholder: "Enter request or attach price tag photo...",
+                sendBtn: "🚀 Send",
+                loadingText: "🌐 Processing request... Please wait.",
+                confirmClear: "Clear chat history?",
+                keySaved: "API Key saved successfully!",
+                enterKeyAlert: "Enter API Key!",
+                noKeyAlert: "Please enter and save Gemini API Key in Settings (⚙️ button)!",
+                noInputAlert: "Enter text or attach an image!",
+                defaultImagePrompt: "Analyze the price tag or product image."
+            }
+        };
+
+        const SYSTEM_PROMPTS = {
+            ua: `Ти — винятково професійний продавець-консультант побутової техніки та електроніки.
 
 ПРАВИЛА ВІДПОВІДІ:
 - НІКОЛИ не вигадуй характеристики чи ціни. Без вступних привітань.
@@ -349,9 +498,35 @@
 - Ключові особливості: [Основні фішки]
 
 💡 КОРОТКИЙ ВЕРДИКТ КОНСУЛЬТАНТА:
-[Професійна оцінка покупцю]`;
+[Професійна оцінка покупцю]`,
+
+            en: `You are an exceptionally professional retail consultant for consumer electronics and home appliances.
+
+RESPONSE RULES:
+- NEVER invent specs or prices. No introductory greetings.
+- Product analysis template:
+
+📌 Product: [Exact Name and Model]
+🏷 Price on tag / average price: [Price]
+
+📋 SPECIFICATIONS:
+- Category: [Device Type]
+- Processor / Chipset: [Model]
+- RAM: [Capacity]
+- Storage: [Capacity]
+- Display: [Diagonal, panel type]
+- Charging / Battery: [Capacity, wattage]
+- Key Features: [Main highlights]
+
+💡 CONSULTANT'S VERDICT:
+[Professional assessment for customer]`
+        };
 
         document.addEventListener("DOMContentLoaded", () => {
+            currentLang = localStorage.getItem("gemini_app_lang") || "ua";
+            document.getElementById("langSelect").value = currentLang;
+            applyTranslations(currentLang);
+
             loadKey();
 
             const savedChat = localStorage.getItem("gemini_chat_history");
@@ -363,6 +538,7 @@
             }
         });
 
+        // Плавне приховування нижньої панелі при скролі
         window.addEventListener("scroll", () => {
             const st = window.pageYOffset || document.documentElement.scrollTop;
             const panel = document.getElementById("bottomPanel");
@@ -374,6 +550,44 @@
             lastScrollTop = st <= 0 ? 0 : st;
         });
 
+        // Модальне вікно
+        function openSettings() {
+            document.getElementById("settingsModal").classList.add("active");
+        }
+
+        function closeSettings() {
+            document.getElementById("settingsModal").classList.remove("active");
+        }
+
+        function closeSettingsOnOverlay(e) {
+            if (e.target.id === "settingsModal") {
+                closeSettings();
+            }
+        }
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem("gemini_app_lang", lang);
+            applyTranslations(lang);
+            const key = document.getElementById("apiKey").value.trim();
+            updateKeyStatus(key);
+        }
+
+        function applyTranslations(lang) {
+            const t = i18n[lang];
+            document.getElementById("appTitle").textContent = t.appTitle;
+            document.getElementById("settingsHeading").textContent = t.settingsHeading;
+            document.getElementById("langLabel").textContent = t.langLabel;
+            document.getElementById("keyLabel").textContent = t.keyLabel;
+            document.getElementById("apiKey").placeholder = t.keyPlaceholder;
+            document.getElementById("btnSaveKey").textContent = t.saveBtn;
+            document.getElementById("historyLabel").textContent = t.historyLabel;
+            document.getElementById("btnClearChat").textContent = t.clearChat;
+            document.getElementById("promptInput").placeholder = t.promptPlaceholder;
+            document.getElementById("sendBtn").textContent = t.sendBtn;
+            document.getElementById("loading").textContent = t.loadingText;
+        }
+
         function loadKey() {
             const savedKey = localStorage.getItem("gemini_api_key") || "";
             document.getElementById("apiKey").value = savedKey;
@@ -382,23 +596,25 @@
 
         function saveKey() {
             const key = document.getElementById("apiKey").value.trim();
+            const t = i18n[currentLang];
             if (!key) {
-                alert("Введіть API Key!");
+                alert(t.enterKeyAlert);
                 return;
             }
             localStorage.setItem("gemini_api_key", key);
             updateKeyStatus(key);
-            alert("API Ключ успішно збережено!");
+            alert(t.keySaved);
         }
 
         function updateKeyStatus(key) {
             const statusEl = document.getElementById("keyStatusText");
+            const t = i18n[currentLang];
             if (key.trim().length > 0) {
                 statusEl.className = "status-tag active";
-                statusEl.textContent = "🟢 Ключ GEMINI активний";
+                statusEl.textContent = t.keyActive;
             } else {
                 statusEl.className = "status-tag inactive";
-                statusEl.textContent = "🔴 Введіть API Key";
+                statusEl.textContent = t.keyInactive;
             }
         }
 
@@ -422,10 +638,12 @@
         }
 
         function clearChatHistory() {
-            if (confirm("Очистити історію чату?")) {
+            const t = i18n[currentLang];
+            if (confirm(t.confirmClear)) {
                 chatHistory = [];
                 localStorage.removeItem("gemini_chat_history");
                 renderChat();
+                closeSettings();
             }
         }
 
@@ -444,19 +662,18 @@
         }
 
         async function sendQuery() {
+            const t = i18n[currentLang];
             let apiKey = document.getElementById("apiKey").value.trim() || localStorage.getItem("gemini_api_key");
 
             if (!apiKey) {
-                alert("Будь ласка, введіть та збережіть Gemini API Key!");
+                alert(t.noKeyAlert);
+                openSettings();
                 return;
             }
 
-            localStorage.setItem("gemini_api_key", apiKey);
-            updateKeyStatus(apiKey);
-
             const textQuery = document.getElementById("promptInput").value.trim();
             if (!textQuery && !selectedBase64Image) {
-                alert("Введіть текст або додайте зображення!");
+                alert(t.noInputAlert);
                 return;
             }
 
@@ -466,7 +683,7 @@
             loadingEl.style.display = "block";
             sendBtn.disabled = true;
 
-            const userText = textQuery || "Проаналізуй зображення цінника/товару.";
+            const userText = textQuery || t.defaultImagePrompt;
             chatHistory.push({ role: "user", text: userText });
             renderChat();
 
@@ -480,7 +697,7 @@
                 localStorage.setItem("gemini_chat_history", JSON.stringify(chatHistory));
                 renderChat();
             } catch (err) {
-                chatHistory.push({ role: "assistant", text: "❌ Помилка API: " + err.message });
+                chatHistory.push({ role: "assistant", text: "❌ API Error: " + err.message });
                 renderChat();
             }
 
@@ -488,7 +705,7 @@
             sendBtn.disabled = false;
         }
 
-        // --- Google Gemini API (gemini-3.6-flash з повтором при навантаженні) ---
+        // --- Google Gemini API (Модель gemini-3.6-flash з автоповтором) ---
         async function callGeminiAPI(apiKey, text, imgBase64, retries = 2) {
             const contents = chatHistory.map(m => ({
                 role: m.role === 'user' ? 'user' : 'model',
@@ -501,6 +718,7 @@
                 });
             }
 
+            const systemPrompt = SYSTEM_PROMPTS[currentLang] || SYSTEM_PROMPTS.ua;
             const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
             for (let attempt = 0; attempt <= retries; attempt++) {
@@ -509,7 +727,7 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+                            system_instruction: { parts: [{ text: systemPrompt }] },
                             contents: contents
                         })
                     });
@@ -517,9 +735,9 @@
                     const data = await res.json();
 
                     if (!res.ok) {
-                        const errMsg = data.error?.message || "Помилка сервера Gemini";
+                        const errMsg = data.error?.message || "Gemini API Server Error";
                         
-                        // Якщо сервер завантажений (High Demand / 503 / 429), робимо повтор через 2 секунди
+                        // Якщо сервер тимчасово перенавантажений — робимо 2-секундну паузу і повторний запит
                         if ((res.status === 503 || res.status === 429 || errMsg.includes("demand") || errMsg.includes("overloaded")) && attempt < retries) {
                             await new Promise(r => setTimeout(r, 2000));
                             continue;
