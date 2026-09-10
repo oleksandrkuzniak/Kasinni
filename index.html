@@ -17,42 +17,50 @@
             background: linear-gradient(135deg, #fdf3f0 0%, #faece8 100%);
             background-attachment: fixed;
             color: #1a1a1a;
-            padding: 14px 12px;
+            padding: 12px;
             max-width: 680px;
             margin: 0 auto;
-            padding-bottom: 220px;
+            padding-bottom: 210px;
             min-height: 100vh;
-        }
-
-        /* Шапка у вигляді окремої плашки */
-        .header {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 12px 18px;
-            margin-bottom: 14px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 16px rgba(220, 80, 50, 0.08);
-            border: 1px solid rgba(229, 115, 115, 0.25);
+            flex-direction: column;
         }
 
-        /* Виділений жирний заголовок */
+        /* Шапка з заголовком по центру та бордовим коліром */
+        .header {
+            position: relative;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 18px;
+            padding: 12px 18px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 16px rgba(120, 30, 20, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+        }
+
+        /* Центрований бордовий заголовок */
         .header h1 {
             font-size: 1.15rem;
             font-weight: 800;
-            color: #2c1810;
+            color: #611624; /* Бордовий відтінок */
             letter-spacing: -0.2px;
+            text-align: center;
         }
 
-        /* Квадратна кнопка налаштувань */
+        /* Квадратна кнопка налаштувань праворуч */
         .btn-settings {
-            width: 42px;
-            height: 42px;
+            position: absolute;
+            right: 12px;
+            width: 40px;
+            height: 40px;
             background-color: #fff4f2;
             border: 1px solid #f87171;
             border-radius: 12px;
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -66,14 +74,17 @@
             background-color: #fca5a5;
         }
 
-        /* Центральний виділений блок чату */
+        /* Розмитий розтягнутий центральний блок чату */
         .main-chat-container {
-            background: #ffffff;
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 22px;
             padding: 16px;
-            box-shadow: 0 8px 25px rgba(210, 70, 40, 0.07);
-            border: 1px solid rgba(229, 115, 115, 0.2);
-            min-height: 380px;
+            box-shadow: 0 8px 32px rgba(180, 60, 40, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            min-height: calc(100vh - 250px);
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -81,30 +92,32 @@
 
         .chat-bubble {
             padding: 12px 15px;
-            border-radius: 15px;
+            border-radius: 16px;
             font-size: 0.93rem;
             line-height: 1.5;
             white-space: pre-wrap;
-            max-width: 90%;
+            max-width: 88%;
             word-break: break-word;
         }
 
+        /* Блідіша плашка запиту користувача */
         .chat-bubble.user {
             align-self: flex-end;
-            background: linear-gradient(135deg, #e14d3d 0%, #c83727 100%);
-            color: white;
-            font-weight: 500;
-            border-bottom-right-radius: 3px;
-            box-shadow: 0 3px 8px rgba(225, 77, 61, 0.25);
+            background-color: #fce4dd;
+            color: #5c1d16;
+            font-weight: 600;
+            border: 1px solid #f8c2b5;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 2px 6px rgba(180, 60, 40, 0.06);
         }
 
         .chat-bubble.assistant {
             align-self: flex-start;
-            background-color: #fff9f8;
+            background-color: #ffffff;
             color: #271c19;
-            border: 1px solid rgba(239, 154, 154, 0.3);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-            border-bottom-left-radius: 3px;
+            border: 1px solid rgba(239, 154, 154, 0.35);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            border-bottom-left-radius: 4px;
             width: 100%;
         }
 
@@ -157,7 +170,7 @@
         .modal-header h2 {
             font-size: 1.15rem;
             font-weight: 800;
-            color: #2c1810;
+            color: #611624;
         }
 
         .btn-close-modal {
@@ -177,7 +190,7 @@
 
         label {
             font-size: 0.88rem;
-            font-weight: 700; /* Жирний шрифт підписів */
+            font-weight: 700;
             color: #3d241c;
         }
 
@@ -234,7 +247,7 @@
             text-align: center;
         }
 
-        /* Зафіксована панель внизу */
+        /* Фіксована панель вводу */
         .bottom-control-panel {
             position: fixed;
             bottom: 0;
@@ -242,10 +255,10 @@
             transform: translateX(-50%);
             width: 100%;
             max-width: 680px;
-            background: rgba(255, 255, 255, 0.96);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             padding: 12px 14px 18px 14px;
-            box-shadow: 0 -6px 25px rgba(210, 70, 40, 0.1);
+            box-shadow: 0 -6px 25px rgba(210, 70, 40, 0.08);
             border-top-left-radius: 22px;
             border-top-right-radius: 22px;
             border: 1px solid rgba(229, 115, 115, 0.25);
@@ -336,6 +349,7 @@
             flex-shrink: 0;
         }
 
+        /* Вилучено capture="environment" для вибору Галерея / Камера */
         .btn-attach input[type="file"] {
             position: absolute;
             left: 0;
@@ -352,7 +366,7 @@
             background: linear-gradient(135deg, #e14d3d 0%, #c83727 100%);
             color: white;
             font-size: 0.98rem;
-            font-weight: 800; /* Жирний текст на кнопці */
+            font-weight: 800;
             border: none;
             border-radius: 12px;
             cursor: pointer;
@@ -380,13 +394,13 @@
 </head>
 <body>
 
-    <!-- Виділена шапка (плашка) -->
+    <!-- Шапка з центрованим бордовим заголовком -->
     <div class="header">
         <h1 id="appTitle">🔍 Асистент & Сканер</h1>
         <button class="btn-settings" onclick="openSettings()" title="Налаштування">⚙️</button>
     </div>
 
-    <!-- Виділена центральна частина для чату -->
+    <!-- Розмита напівпрозора центральна зона -->
     <div class="main-chat-container" id="chatContainer"></div>
 
     <div id="loading" class="loading-status">
@@ -428,7 +442,7 @@
         </div>
     </div>
 
-    <!-- Нижня фіксована панель -->
+    <!-- Нижня панель вводу -->
     <div class="bottom-control-panel" id="bottomPanel">
         <div class="search-box-wrapper">
             <div id="previewContainer" style="display: none;">
@@ -443,7 +457,8 @@
             <div class="action-bar">
                 <div class="btn-attach" title="Прикріпити фото">
                     📷
-                    <input type="file" id="imageInput" accept="image/*" capture="environment" onchange="handleImageSelect(event)">
+                    <!-- Атрибут capture вилучено для можливості вибору (Камера або Галерея) -->
+                    <input type="file" id="imageInput" accept="image/*" onchange="handleImageSelect(event)">
                 </div>
                 <button id="sendBtn" class="btn-send" onclick="sendQuery()">
                     🚀 Надіслати
@@ -563,7 +578,6 @@ RESPONSE RULES:
             }
         });
 
-        // Плавний прихований скрол панелі
         window.addEventListener("scroll", () => {
             const st = window.pageYOffset || document.documentElement.scrollTop;
             const panel = document.getElementById("bottomPanel");
@@ -575,7 +589,6 @@ RESPONSE RULES:
             lastScrollTop = st <= 0 ? 0 : st;
         });
 
-        // Модальне вікно
         function openSettings() {
             document.getElementById("settingsModal").classList.add("active");
         }
@@ -730,7 +743,7 @@ RESPONSE RULES:
             sendBtn.disabled = false;
         }
 
-        // Gemini 3.6 Flash API із системою автоповтору
+        // Gemini 3.6 Flash API
         async function callGeminiAPI(apiKey, text, imgBase64, retries = 2) {
             const contents = chatHistory.map(m => ({
                 role: m.role === 'user' ? 'user' : 'model',
