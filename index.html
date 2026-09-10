@@ -349,6 +349,7 @@
             flex-shrink: 0;
         }
 
+        /* Вилучено capture="environment" для вибору Галерея / Камера */
         .btn-attach input[type="file"] {
             position: absolute;
             left: 0;
@@ -456,6 +457,7 @@
             <div class="action-bar">
                 <div class="btn-attach" title="Прикріпити фото">
                     📷
+                    <!-- Атрибут capture вилучено для можливості вибору (Камера або Галерея) -->
                     <input type="file" id="imageInput" accept="image/*" onchange="handleImageSelect(event)">
                 </div>
                 <button id="sendBtn" class="btn-send" onclick="sendQuery()">
@@ -516,22 +518,15 @@
             }
         };
 
-        /* Промпт із чітким контекстом 2026 року */
         const SYSTEM_PROMPTS = {
-            ua: `ПОТОЧНИЙ РІК: 2026 РІК.
-Ти — винятково професійний продавець-консультант побутової техніки та електроніки.
-
-ВАЖЛИВО ПРО АКТУАЛЬНІСТЬ ТОВАРІВ СТАНОМ НА 2026 РІК:
-- Зараз 2026 рік! Обов'язково шукай актуальну інформацію в Інтернеті перед відповіддю.
-- Звертай увагу, які моделі вже зняті з виробництва (наприклад, iPhone 11 знятий з офіційних продажів), а які актуальні або недавно вийшли (наприклад, серія iPhone 17).
-- Вказуй дійсні ринкові ціни в Україні за 2026 рік.
+            ua: `Ти — винятково професійний продавець-консультант побутової техніки та електроніки.
 
 ПРАВИЛА ВІДПОВІДІ:
 - НІКОЛИ не вигадуй характеристики чи ціни. Без вступних привітань.
 - Шаблон аналізу товару при первинному запиті:
 
 📌 Товар: [Точна назва та модель]
-🏷 Ціна на ціннику / середня ціна (2026): [Ціна] грн
+🏷 Ціна на ціннику / середня ціна: [Ціна] грн
 
 📋 ХАРАКТЕРИСТИКИ:
 - Категорія: [Тип пристрою]
@@ -543,22 +538,16 @@
 - Ключові особливості: [Основні фішки]
 
 💡 КОРОТКИЙ ВЕРДИКТ КОНСУЛЬТАНТА:
-[Професійна оцінка покупцю з урахуванням стану ринку на 2026 рік]`,
+[Професійна оцінка покупцю]`,
 
-            en: `CURRENT YEAR: 2026.
-You are an exceptionally professional retail consultant for consumer electronics and home appliances.
-
-CRITICAL INFORMATION FOR 2026:
-- The current year is 2026! Use web search to fetch live data.
-- Account for obsolete vs currently active devices (e.g. iPhone 11 is long discontinued officially, whereas newer series like iPhone 17 are current).
-- Provide up-to-date market prices for 2026.
+            en: `You are an exceptionally professional retail consultant for consumer electronics and home appliances.
 
 RESPONSE RULES:
 - NEVER invent specs or prices. No introductory greetings.
 - Product analysis template:
 
 📌 Product: [Exact Name and Model]
-🏷 Price on tag / average price (2026): [Price]
+🏷 Price on tag / average price: [Price]
 
 📋 SPECIFICATIONS:
 - Category: [Device Type]
@@ -570,7 +559,7 @@ RESPONSE RULES:
 - Key Features: [Main highlights]
 
 💡 CONSULTANT'S VERDICT:
-[Professional assessment for customer accounting for the 2026 market context]`
+[Professional assessment for customer]`
         };
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -754,7 +743,7 @@ RESPONSE RULES:
             sendBtn.disabled = false;
         }
 
-        // Gemini API з використанням Google Search Grounding
+        // Gemini 3.6 Flash API
         async function callGeminiAPI(apiKey, text, imgBase64, retries = 2) {
             const contents = chatHistory.map(m => ({
                 role: m.role === 'user' ? 'user' : 'model',
@@ -777,11 +766,7 @@ RESPONSE RULES:
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             system_instruction: { parts: [{ text: systemPrompt }] },
-                            contents: contents,
-                            // Вмикаємо живий пошук у Гуглі для актуалізації даних 2026 року:
-                            tools: [
-                                { google_search: {} }
-                            ]
+                            contents: contents
                         })
                     });
 
@@ -797,11 +782,7 @@ RESPONSE RULES:
                         throw new Error(errMsg);
                     }
 
-                    // Зчитуємо текст із можливих частин відповіді
-                    const parts = data.candidates?.[0]?.content?.parts || [];
-                    const responseText = parts.filter(p => p.text).map(p => p.text).join("\n");
-
-                    return responseText || "Не вдалося отримати текст відповіді.";
+                    return data.candidates[0].content.parts.map(p => p.text).join("");
                 } catch (err) {
                     if (attempt === retries) throw err;
                     await new Promise(r => setTimeout(r, 2000));
