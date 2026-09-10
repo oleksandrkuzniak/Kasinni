@@ -12,48 +12,100 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
+        /* Блідо-оранжевий / червонуватий приємний фон */
         body {
-            background-color: #f4f6f8;
+            background: linear-gradient(135deg, #fdf3f0 0%, #faece8 100%);
+            background-attachment: fixed;
             color: #1a1a1a;
-            padding: 12px;
-            max-width: 650px;
+            padding: 14px 12px;
+            max-width: 680px;
             margin: 0 auto;
             padding-bottom: 220px;
+            min-height: 100vh;
         }
 
-        /* Шапка */
+        /* Шапка у вигляді окремої плашки */
         .header {
-            text-align: center;
-            margin: 10px 0 15px 0;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 12px 18px;
+            margin-bottom: 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 4px 16px rgba(220, 80, 50, 0.08);
+            border: 1px solid rgba(229, 115, 115, 0.25);
         }
 
+        /* Виділений жирний заголовок */
         .header h1 {
-            font-size: 1.1rem;
-            color: #111;
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #2c1810;
+            letter-spacing: -0.2px;
         }
 
         /* Квадратна кнопка налаштувань */
         .btn-settings {
             width: 42px;
             height: 42px;
-            background-color: #ffffff;
-            border: 1px solid #d1d5db;
+            background-color: #fff4f2;
+            border: 1px solid #f87171;
             border-radius: 12px;
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            transition: all 0.2s;
         }
 
         .btn-settings:active {
-            transform: scale(0.95);
-            background-color: #f3f4f6;
+            transform: scale(0.93);
+            background-color: #fca5a5;
+        }
+
+        /* Центральний виділений блок чату */
+        .main-chat-container {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 8px 25px rgba(210, 70, 40, 0.07);
+            border: 1px solid rgba(229, 115, 115, 0.2);
+            min-height: 380px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-bubble {
+            padding: 12px 15px;
+            border-radius: 15px;
+            font-size: 0.93rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            max-width: 90%;
+            word-break: break-word;
+        }
+
+        .chat-bubble.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #e14d3d 0%, #c83727 100%);
+            color: white;
+            font-weight: 500;
+            border-bottom-right-radius: 3px;
+            box-shadow: 0 3px 8px rgba(225, 77, 61, 0.25);
+        }
+
+        .chat-bubble.assistant {
+            align-self: flex-start;
+            background-color: #fff9f8;
+            color: #271c19;
+            border: 1px solid rgba(239, 154, 154, 0.3);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            border-bottom-left-radius: 3px;
+            width: 100%;
         }
 
         /* Модальне вікно налаштувань */
@@ -63,8 +115,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(4px);
+            background: rgba(40, 20, 15, 0.45);
+            backdrop-filter: blur(5px);
             display: none;
             align-items: center;
             justify-content: center;
@@ -79,18 +131,18 @@
             background: #ffffff;
             width: 90%;
             max-width: 480px;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 22px;
+            padding: 22px;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.25);
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            position: relative;
+            gap: 18px;
+            border: 1px solid rgba(239, 154, 154, 0.4);
             animation: modalFadeIn 0.25s ease-out;
         }
 
         @keyframes modalFadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(12px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -98,21 +150,22 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
+            border-bottom: 2px solid #fce8e6;
+            padding-bottom: 12px;
         }
 
         .modal-header h2 {
-            font-size: 1.1rem;
-            color: #111;
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #2c1810;
         }
 
         .btn-close-modal {
             background: none;
             border: none;
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             cursor: pointer;
-            color: #6b7280;
+            color: #888;
             padding: 4px;
         }
 
@@ -123,23 +176,24 @@
         }
 
         label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #374151;
+            font-size: 0.88rem;
+            font-weight: 700; /* Жирний шрифт підписів */
+            color: #3d241c;
         }
 
         select, input[type="text"] {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 10px;
+            padding: 11px;
+            border: 1px solid #fca5a5;
+            border-radius: 12px;
             font-size: 0.9rem;
-            background: #fff;
+            background: #fffdfd;
             outline: none;
         }
 
         select:focus, input[type="text"]:focus {
-            border-color: #0066cc;
+            border-color: #e14d3d;
+            box-shadow: 0 0 0 3px rgba(225, 77, 61, 0.15);
         }
 
         .input-row {
@@ -148,19 +202,19 @@
         }
 
         .btn-save-key {
-            background-color: #10b981;
+            background: #10b981;
             color: white;
             border: none;
-            border-radius: 10px;
-            padding: 0 16px;
-            font-weight: 600;
+            border-radius: 12px;
+            padding: 0 18px;
+            font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
         }
 
         .status-tag {
-            font-size: 0.78rem;
-            font-weight: 600;
+            font-size: 0.8rem;
+            font-weight: 700;
             margin-top: 2px;
         }
 
@@ -171,47 +225,13 @@
             background-color: #fee2e2;
             color: #dc2626;
             border: 1px solid #fca5a5;
-            padding: 10px;
-            border-radius: 10px;
-            font-size: 0.88rem;
-            font-weight: 600;
+            padding: 11px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 700;
             cursor: pointer;
             width: 100%;
             text-align: center;
-        }
-
-        /* Чат */
-        #chatContainer {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .chat-bubble {
-            padding: 12px 14px;
-            border-radius: 14px;
-            font-size: 0.92rem;
-            line-height: 1.5;
-            white-space: pre-wrap;
-            max-width: 90%;
-            word-break: break-word;
-        }
-
-        .chat-bubble.user {
-            align-self: flex-end;
-            background-color: #0066cc;
-            color: white;
-            border-bottom-right-radius: 2px;
-        }
-
-        .chat-bubble.assistant {
-            align-self: flex-start;
-            background-color: #ffffff;
-            color: #1f2937;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-            border-bottom-left-radius: 2px;
-            width: 100%;
         }
 
         /* Зафіксована панель внизу */
@@ -221,20 +241,22 @@
             left: 50%;
             transform: translateX(-50%);
             width: 100%;
-            max-width: 650px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(8px);
-            padding: 10px 12px 16px 12px;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
+            max-width: 680px;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(10px);
+            padding: 12px 14px 18px 14px;
+            box-shadow: 0 -6px 25px rgba(210, 70, 40, 0.1);
+            border-top-left-radius: 22px;
+            border-top-right-radius: 22px;
+            border: 1px solid rgba(229, 115, 115, 0.25);
+            border-bottom: none;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1000;
         }
 
         .bottom-control-panel.minimized {
             transform: translateX(-50%) translateY(35px);
-            opacity: 0.85;
+            opacity: 0.88;
         }
 
         .search-box-wrapper {
@@ -246,18 +268,19 @@
         textarea {
             width: 100%;
             height: 75px;
-            padding: 10px;
-            border: 1px solid #e0e0e0;
+            padding: 11px;
+            border: 1px solid #fca5a5;
             border-radius: 12px;
             font-size: 0.92rem;
             resize: none;
             outline: none;
-            background-color: #fafafa;
+            background-color: #fffdfd;
         }
 
         textarea:focus {
-            border-color: #0066cc;
+            border-color: #e14d3d;
             background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(225, 77, 61, 0.15);
         }
 
         .preview-wrapper {
@@ -270,8 +293,8 @@
             width: 70px;
             height: 70px;
             object-fit: cover;
-            border-radius: 8px;
-            border: 1px solid #ddd;
+            border-radius: 10px;
+            border: 2px solid #e14d3d;
         }
 
         .remove-btn {
@@ -282,9 +305,10 @@
             color: white;
             border: none;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             font-size: 11px;
+            font-weight: bold;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -302,13 +326,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #f3f4f6;
-            border: 1px solid #d1d5db;
+            background-color: #fff4f2;
+            border: 1px solid #f87171;
             border-radius: 12px;
             cursor: pointer;
-            font-size: 1.2rem;
-            width: 46px;
-            height: 46px;
+            font-size: 1.25rem;
+            width: 48px;
+            height: 48px;
             flex-shrink: 0;
         }
 
@@ -324,44 +348,46 @@
 
         .btn-send {
             flex-grow: 1;
-            height: 46px;
-            background-color: #0066cc;
+            height: 48px;
+            background: linear-gradient(135deg, #e14d3d 0%, #c83727 100%);
             color: white;
-            font-size: 0.95rem;
-            font-weight: 600;
+            font-size: 0.98rem;
+            font-weight: 800; /* Жирний текст на кнопці */
             border: none;
             border-radius: 12px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 4px 12px rgba(225, 77, 61, 0.25);
         }
 
         .btn-send:disabled {
-            background-color: #93c5fd;
+            background: #fca5a5;
             cursor: not-allowed;
+            box-shadow: none;
         }
 
         .loading-status {
             text-align: center;
             padding: 10px;
-            font-weight: 600;
-            color: #0066cc;
-            font-size: 0.85rem;
+            font-weight: 700;
+            color: #e14d3d;
+            font-size: 0.88rem;
             display: none;
         }
     </style>
 </head>
 <body>
 
-    <!-- Шапка з квадратною кнопкою налаштувань -->
+    <!-- Виділена шапка (плашка) -->
     <div class="header">
         <h1 id="appTitle">🔍 Асистент & Сканер</h1>
         <button class="btn-settings" onclick="openSettings()" title="Налаштування">⚙️</button>
     </div>
 
-    <!-- Область чату -->
-    <div id="chatContainer"></div>
+    <!-- Виділена центральна частина для чату -->
+    <div class="main-chat-container" id="chatContainer"></div>
 
     <div id="loading" class="loading-status">
         🌐 Опрацьовую запит... Зачекайте.
@@ -375,7 +401,7 @@
                 <button class="btn-close-modal" onclick="closeSettings()">✕</button>
             </div>
 
-            <!-- Вибір мови -->
+            <!-- Мова -->
             <div class="setting-item">
                 <label for="langSelect" id="langLabel">🌐 Мова інтерфейсу:</label>
                 <select id="langSelect" onchange="changeLanguage(this.value)">
@@ -384,7 +410,7 @@
                 </select>
             </div>
 
-            <!-- Введення API ключа -->
+            <!-- API Ключ -->
             <div class="setting-item">
                 <label for="apiKey" id="keyLabel">🔑 API Ключ Google Gemini:</label>
                 <div class="input-row">
@@ -402,7 +428,7 @@
         </div>
     </div>
 
-    <!-- Нижня панель вводу -->
+    <!-- Нижня фіксована панель -->
     <div class="bottom-control-panel" id="bottomPanel">
         <div class="search-box-wrapper">
             <div id="previewContainer" style="display: none;">
@@ -432,7 +458,6 @@
         let currentLang = "ua";
         let lastScrollTop = 0;
 
-        // Переклади UI
         const i18n = {
             ua: {
                 appTitle: "🔍 Асистент & Сканер",
@@ -538,7 +563,7 @@ RESPONSE RULES:
             }
         });
 
-        // Плавне приховування нижньої панелі при скролі
+        // Плавний прихований скрол панелі
         window.addEventListener("scroll", () => {
             const st = window.pageYOffset || document.documentElement.scrollTop;
             const panel = document.getElementById("bottomPanel");
@@ -705,7 +730,7 @@ RESPONSE RULES:
             sendBtn.disabled = false;
         }
 
-        // --- Google Gemini API (Модель gemini-3.6-flash з автоповтором) ---
+        // Gemini 3.6 Flash API із системою автоповтору
         async function callGeminiAPI(apiKey, text, imgBase64, retries = 2) {
             const contents = chatHistory.map(m => ({
                 role: m.role === 'user' ? 'user' : 'model',
@@ -737,7 +762,6 @@ RESPONSE RULES:
                     if (!res.ok) {
                         const errMsg = data.error?.message || "Gemini API Server Error";
                         
-                        // Якщо сервер тимчасово перенавантажений — робимо 2-секундну паузу і повторний запит
                         if ((res.status === 503 || res.status === 429 || errMsg.includes("demand") || errMsg.includes("overloaded")) && attempt < retries) {
                             await new Promise(r => setTimeout(r, 2000));
                             continue;
